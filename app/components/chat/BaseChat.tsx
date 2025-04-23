@@ -323,10 +323,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             {!chatStarted && (
               <div id="intro" className="mt-[16vh] max-w-chat mx-auto text-center px-4 lg:px-0">
                 <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-4 animate-fade-in">
-                  生成AIでUI作成
+                  生成UI
                 </h1>
                 <p className="text-md lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
-                  元にするファイルを選択してください
+                  生成のもとになるソースを選択してください
                 </p>
                 <div className="flex flex-col justify-center gap-5">
               {!chatStarted && (
@@ -392,20 +392,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         x1="20%"
                         y1="0%"
                         x2="-14%"
-                        y2="10%"
+                        y2="30%"
                         gradientUnits="userSpaceOnUse"
                         gradientTransform="rotate(-45)"
                       >
-                        <stop offset="0%" stopColor="#b44aff" stopOpacity="0%"></stop>
-                        <stop offset="40%" stopColor="#b44aff" stopOpacity="80%"></stop>
-                        <stop offset="50%" stopColor="#b44aff" stopOpacity="80%"></stop>
-                        <stop offset="100%" stopColor="#b44aff" stopOpacity="0%"></stop>
-                      </linearGradient>
-                      <linearGradient id="shine-gradient">
-                        <stop offset="0%" stopColor="white" stopOpacity="0%"></stop>
-                        <stop offset="40%" stopColor="#ffffff" stopOpacity="80%"></stop>
-                        <stop offset="50%" stopColor="#ffffff" stopOpacity="80%"></stop>
-                        <stop offset="100%" stopColor="white" stopOpacity="0%"></stop>
+                        <stop offset="0%" stopColor="#F97316" stopOpacity="0%"></stop>
+                        <stop offset="10%" stopColor="#F97316" stopOpacity="80%"></stop>
+                        <stop offset="70%" stopColor="#F97316" stopOpacity="80%"></stop>
+                        <stop offset="100%" stopColor="#F97316" stopOpacity="0%"></stop>
                       </linearGradient>
                     </defs>
                     <rect className={classNames(styles.PromptEffectLine)} pathLength="100" strokeLinecap="round"></rect>

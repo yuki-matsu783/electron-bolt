@@ -1,73 +1,95 @@
+/**
+ * BackgroundRays コンポーネントのスタイル
+ * 画面背景に緑系のグラデーションの光線効果を表示する
+ */
+
 .rayContainer {
-  // Theme-specific colors
+  // テーマカラーの定義
+  --primary-color: #22c55e; // 緑系のプライマリカラー - メインの光線効果に使用
+  --secondary-color: #e86666; // 濃い緑のセカンダリカラー - 補助的な光線効果に使用
+  --accent-color:  #f97316;// オレンジのアクセントカラー - アクセント効果用の光線に使用
+  
+  // 各色の透明度を30%に設定したカラー変数
   --ray-color-primary: color-mix(in srgb, var(--primary-color), transparent 30%);
   --ray-color-secondary: color-mix(in srgb, var(--secondary-color), transparent 30%);
   --ray-color-accent: color-mix(in srgb, var(--accent-color), transparent 30%);
 
-  // Theme-specific gradients
+  // 各光線のグラデーション定義 - 中心から外側に向かって透明になる
   --ray-gradient-primary: radial-gradient(var(--ray-color-primary) 0%, transparent 70%);
   --ray-gradient-secondary: radial-gradient(var(--ray-color-secondary) 0%, transparent 70%);
   --ray-gradient-accent: radial-gradient(var(--ray-color-accent) 0%, transparent 70%);
 
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  animation: fadeIn 1.5s ease-out;
-  pointer-events: none;
-  z-index: 0;
+  // 光線コンテナの配置と表示設定
+  position: fixed; // 画面に固定
+  inset: 0; // 画面全体に広がるように設定
+  overflow: hidden; // はみ出した部分を非表示
+  animation: fadeIn 1.5s ease-out; // フェードイン効果
+  pointer-events: none; // マウスイベントを透過
+  z-index: 0; // 重なり順を最背面に設定
   //   background-color: transparent;
 
+  // ダークテーマ時のブレンドモード設定
   :global(html[data-theme='dark']) & {
-    mix-blend-mode: screen;
+    mix-blend-mode: screen; // 光源として重ね合わせる
   }
 
+  // ライトテーマ時のブレンドモード設定
   :global(html[data-theme='light']) & {
-    mix-blend-mode: multiply;
+    mix-blend-mode: darken; // 色を重ね合わせる
   }
 }
 
+// 各光線の共通スタイル
 .lightRay {
-  position: absolute;
-  border-radius: 100%;
+  position: absolute; // 絶対位置指定
+  border-radius: 50%; // 円形のグラデーション
 
+  // ダークテーマ時の表示設定
   :global(html[data-theme='dark']) & {
-    mix-blend-mode: screen;
+    mix-blend-mode: screen; // 光源として重ね合わせる
   }
 
+  // ライトテーマ時の表示設定
   :global(html[data-theme='light']) & {
-    mix-blend-mode: multiply;
-    opacity: 0.4;
+    mix-blend-mode: darken; // 色を重ね合わせる
+    opacity: 0.4; // 不透明度を下げて薄く表示
   }
 }
 
+// 以下、各光線の個別設定
+// ray1〜ray8は画面上部に配置された8つの異なる光線
+
+// 光線1: 左上の大きな緑色光線
 .ray1 {
-  width: 600px;
-  height: 800px;
-  background: var(--ray-gradient-primary);
-  transform: rotate(65deg);
-  top: -500px;
-  left: -100px;
-  filter: blur(80px);
-  opacity: 0.6;
-  animation: float1 15s infinite ease-in-out;
+  width: 600px; // 幅
+  height: 800px; // 高さ
+  background: var(--ray-gradient-primary); // プライマリ緑のグラデーション
+  transform: rotate(65deg); // 65度回転
+  top: -500px; // 画面上部からのオフセット
+  left: -100px; // 画面左からのオフセット
+  filter: blur(80px); // ぼかし効果
+  opacity: 0.6; // 不透明度
+  animation: float1 15s infinite ease-in-out; // 浮遊アニメーション
 }
 
+// 光線2: 左上の中サイズ緑色光線
 .ray2 {
   width: 400px;
   height: 600px;
-  background: var(--ray-gradient-secondary);
-  transform: rotate(-30deg);
+  background: var(--ray-gradient-secondary); // セカンダリ緑のグラデーション
+  transform: rotate(-30deg); // -30度回転
   top: -300px;
   left: 200px;
   filter: blur(60px);
   opacity: 0.6;
-  animation: float2 18s infinite ease-in-out;
+  animation: float2 18s infinite ease-in-out; // 18秒周期のアニメーション
 }
 
+// 光線3: 中央上部のオレンジ色光線
 .ray3 {
   width: 500px;
   height: 400px;
-  background: var(--ray-gradient-accent);
+  background: var(--ray-gradient-accent); // オレンジのグラデーション
   top: -320px;
   left: 500px;
   filter: blur(65px);
@@ -75,10 +97,11 @@
   animation: float3 20s infinite ease-in-out;
 }
 
+// 光線4: 中央右上の緑色光線
 .ray4 {
   width: 400px;
   height: 450px;
-  background: var(--ray-gradient-secondary);
+  background: var(--ray-gradient-secondary); // セカンダリ緑のグラデーション
   top: -350px;
   left: 800px;
   filter: blur(55px);
@@ -86,10 +109,11 @@
   animation: float4 17s infinite ease-in-out;
 }
 
+// 光線5: 右上の中サイズ緑色光線
 .ray5 {
   width: 350px;
   height: 500px;
-  background: var(--ray-gradient-primary);
+  background: var(--ray-gradient-primary); // プライマリ緑のグラデーション
   transform: rotate(-45deg);
   top: -250px;
   left: 1000px;
@@ -98,10 +122,11 @@
   animation: float5 16s infinite ease-in-out;
 }
 
+// 光線6: 中央上部のオレンジ色縦長光線
 .ray6 {
   width: 300px;
   height: 700px;
-  background: var(--ray-gradient-accent);
+  background: var(--ray-gradient-accent); // オレンジのグラデーション
   transform: rotate(75deg);
   top: -400px;
   left: 600px;
@@ -110,10 +135,11 @@
   animation: float6 19s infinite ease-in-out;
 }
 
+// 光線7: 中央左上の緑色光線
 .ray7 {
   width: 450px;
   height: 600px;
-  background: var(--ray-gradient-primary);
+  background: var(--ray-gradient-primary); // プライマリ緑のグラデーション
   transform: rotate(45deg);
   top: -450px;
   left: 350px;
@@ -122,10 +148,11 @@
   animation: float7 21s infinite ease-in-out;
 }
 
+// 光線8: 中央右上の緑色光線
 .ray8 {
   width: 380px;
   height: 550px;
-  background: var(--ray-gradient-secondary);
+  background: var(--ray-gradient-secondary); // セカンダリ緑のグラデーション
   transform: rotate(-60deg);
   top: -380px;
   left: 750px;
@@ -134,6 +161,10 @@
   animation: float8 14s infinite ease-in-out;
 }
 
+/* アニメーションの定義 */
+// 各光線の動きを定義するキーフレームアニメーション
+
+// 光線1のアニメーション: 回転しながら移動
 @keyframes float1 {
   0%,
   100% {
@@ -150,6 +181,7 @@
   }
 }
 
+// 光線2のアニメーション: 回転と拡大縮小
 @keyframes float2 {
   0%,
   100% {
@@ -163,6 +195,7 @@
   }
 }
 
+// 光線3のアニメーション: 移動と回転
 @keyframes float3 {
   0%,
   100% {
@@ -176,6 +209,7 @@
   }
 }
 
+// 光線4のアニメーション: 拡大縮小と回転
 @keyframes float4 {
   0%,
   100% {
@@ -186,6 +220,7 @@
   }
 }
 
+// 光線5のアニメーション: 回転しながら移動
 @keyframes float5 {
   0%,
   100% {
@@ -199,6 +234,7 @@
   }
 }
 
+// 光線6のアニメーション: 回転と拡大縮小、ぼかし効果の変化
 @keyframes float6 {
   0%,
   100% {
@@ -211,6 +247,7 @@
   }
 }
 
+// 光線7のアニメーション: 回転と移動、不透明度の変化
 @keyframes float7 {
   0%,
   100% {
@@ -223,6 +260,7 @@
   }
 }
 
+// 光線8のアニメーション: 回転と拡大縮小
 @keyframes float8 {
   0%,
   100% {
@@ -236,11 +274,12 @@
   }
 }
 
+// コンポーネント全体のフェードインアニメーション
 @keyframes fadeIn {
   from {
-    opacity: 0;
+    opacity: 0; // 完全に透明から始まる
   }
   to {
-    opacity: 1;
+    opacity: 1; // 設定された不透明度まで徐々に表示
   }
 }

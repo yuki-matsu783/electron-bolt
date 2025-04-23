@@ -36,7 +36,7 @@ export const createChatFromFolder = async (
 
   const filesMessage: Message = {
     role: 'assistant',
-    content: `I've imported the contents of the "${folderName}" folder.${binaryFilesMessage}
+    content: `"${folderName}" フォルダの内容をインポートしました。${binaryFilesMessage}
 
 <boltArtifact id="imported-files" title="Imported Files" type="bundled" >
 ${fileArtifacts
@@ -54,7 +54,7 @@ ${escapeBoltTags(file.content)}
   const userMessage: Message = {
     role: 'user',
     id: generateId(),
-    content: `Import the "${folderName}" folder`,
+    content: `"${folderName}" フォルダをインポートしました`,
     createdAt: new Date(),
   };
 
@@ -64,7 +64,7 @@ ${escapeBoltTags(file.content)}
     messages.push({
       role: 'user',
       id: generateId(),
-      content: 'Setup the codebase and Start the application',
+      content: 'コードベースをセットアップして、アプリケーションを起動します。',
     });
     messages.push(commandsMessage);
   }
