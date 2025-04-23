@@ -34,17 +34,17 @@ export async function detectProjectCommands(files: FileContent[]): Promise<Proje
       if (availableCommand) {
         return {
           type: 'Node.js',
-          setupCommand: `npm install`,
-          startCommand: `npm run ${availableCommand}`,
-          followupMessage: `Found "${availableCommand}" script in package.json. Running "npm run ${availableCommand}" after installation.`,
+          setupCommand: `pnpm install`,
+          startCommand: `pnpm run ${availableCommand}`,
+          followupMessage: `package.json 内に "${availableCommand}" スクリプトが見つかりました。インストール後に "pnpm run ${availableCommand}" を実行します。`,
         };
       }
 
       return {
         type: 'Node.js',
-        setupCommand: 'npm install',
+        setupCommand: 'pnpm install',
         followupMessage:
-          'Would you like me to inspect package.json to determine the available scripts for running this project?',
+          'このプロジェクトを実行するための利用可能なスクリプトを確認するために package.json を調査しますか？',
       };
     } catch (error) {
       console.error('Error parsing package.json:', error);

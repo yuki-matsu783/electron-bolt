@@ -80,16 +80,16 @@ export const detectProjectType = async (
     if (availableCommand) {
       return {
         type: 'Node.js',
-        setupCommand: `npm install && npm run ${availableCommand}`,
-        followupMessage: `Found "${availableCommand}" script in package.json. Running "npm run ${availableCommand}" after installation.`,
+        setupCommand: `pnpm install && pnpm run ${availableCommand}`,
+        followupMessage: `package.json 内に "${availableCommand}" スクリプトが見つかりました。インストール後に "pnpm run ${availableCommand}" を実行します。`,
       };
     }
 
     return {
       type: 'Node.js',
-      setupCommand: 'npm install',
+      setupCommand: 'pnpm install',
       followupMessage:
-        'Would you like me to inspect package.json to determine the available scripts for running this project?',
+        'このプロジェクトを実行するための利用可能なスクリプトを確認するために package.json を調査しますか？',
     };
   }
 
