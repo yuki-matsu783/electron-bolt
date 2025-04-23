@@ -37,7 +37,7 @@ export default class OllamaProvider extends BaseProvider {
     baseUrlKey: 'OLLAMA_API_BASE_URL',
   };
 
-  staticModels: ModelInfo[] = [];
+  staticModels: ModelInfo[] = [{ name: 'llama3', label: 'llama3', provider: 'Ollama', maxTokenAllowed: 8000 }];
 
   private _convertEnvToRecord(env?: Env): Record<string, string> {
     if (!env) {
@@ -71,6 +71,8 @@ export default class OllamaProvider extends BaseProvider {
       defaultBaseUrlKey: 'OLLAMA_API_BASE_URL',
       defaultApiTokenKey: '',
     });
+
+    baseUrl="http://127.0.0.1:11434"
 
     if (!baseUrl) {
       throw new Error('No baseUrl found for OLLAMA provider');
