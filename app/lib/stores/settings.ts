@@ -1,5 +1,5 @@
 import { atom, map } from 'nanostores';
-import { PROVIDER_LIST } from '~/utils/constants';
+import { PROVIDER_LIST, FileSystemType } from '~/utils/constants';
 import type { IProviderConfig } from '~/types/model';
 import type {
   TabVisibilityConfig,
@@ -131,6 +131,7 @@ const SETTINGS_KEYS = {
   EVENT_LOGS: 'isEventLogsEnabled',
   PROMPT_ID: 'promptId',
   DEVELOPER_MODE: 'isDeveloperMode',
+  FILE_SYSTEM_TYPE: 'bolt_file_system_type',
 } as const;
 
 // Initialize settings from localStorage or defaults
@@ -153,6 +154,15 @@ const getInitialSettings = () => {
     }
   };
 
+  const getStoredString = (key: string, defaultValue: string): string => {
+    if (!isBrowser) {
+      return defaultValue;
+    }
+
+    const stored = localStorage.getItem(key);
+    return stored !== null ? stored : defaultValue;
+  };
+
   return {
     latestBranch: getStoredBoolean(SETTINGS_KEYS.LATEST_BRANCH, false),
     autoSelectTemplate: getStoredBoolean(SETTINGS_KEYS.AUTO_SELECT_TEMPLATE, true),
@@ -160,6 +170,7 @@ const getInitialSettings = () => {
     eventLogs: getStoredBoolean(SETTINGS_KEYS.EVENT_LOGS, true),
     promptId: isBrowser ? localStorage.getItem(SETTINGS_KEYS.PROMPT_ID) || 'default' : 'default',
     developerMode: getStoredBoolean(SETTINGS_KEYS.DEVELOPER_MODE, false),
+    fileSystemType: getStoredString(SETTINGS_KEYS.FILE_SYSTEM_TYPE, FileSystemType.WEB_CONTAINER),
   };
 };
 
@@ -171,6 +182,7 @@ export const autoSelectStarterTemplate = atom<boolean>(initialSettings.autoSelec
 export const enableContextOptimizationStore = atom<boolean>(initialSettings.contextOptimization);
 export const isEventLogsEnabled = atom<boolean>(initialSettings.eventLogs);
 export const promptStore = atom<string>(initialSettings.promptId);
+export const fileSystemTypeStore = atom<string>(initialSettings.fileSystemType);
 
 // Helper functions to update settings with persistence
 export const updateLatestBranch = (enabled: boolean) => {
@@ -196,6 +208,11 @@ export const updateEventLogs = (enabled: boolean) => {
 export const updatePromptId = (id: string) => {
   promptStore.set(id);
   localStorage.setItem(SETTINGS_KEYS.PROMPT_ID, id);
+};
+
+export const updateFileSystemType = (type: FileSystemType) => {
+  fileSystemTypeStore.set(type);
+  localStorage.setItem(SETTINGS_KEYS.FILE_SYSTEM_TYPE, type);
 };
 
 // Initialize tab configuration from localStorage or defaults

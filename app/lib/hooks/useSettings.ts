@@ -8,6 +8,7 @@ import {
   autoSelectStarterTemplate,
   enableContextOptimizationStore,
   tabConfigurationStore,
+  fileSystemTypeStore,
   updateTabConfiguration as updateTabConfig,
   resetTabConfiguration as resetTabConfig,
   updateProviderSettings as updateProviderSettingsStore,
@@ -16,6 +17,7 @@ import {
   updateContextOptimization,
   updateEventLogs,
   updatePromptId,
+  updateFileSystemType,
 } from '~/lib/stores/settings';
 import { useCallback, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
@@ -23,6 +25,7 @@ import type { IProviderSetting, ProviderInfo, IProviderConfig } from '~/types/mo
 import type { TabWindowConfig, TabVisibilityConfig } from '~/components/@settings/core/types';
 import { logStore } from '~/lib/stores/logs';
 import { getLocalStorage, setLocalStorage } from '~/lib/persistence';
+import { FileSystemType } from '~/utils/constants';
 
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
@@ -31,6 +34,7 @@ export interface Settings {
   eventLogs: boolean;
   timezone: string;
   tabConfiguration: TabWindowConfig;
+  fileSystemType: FileSystemType;
 }
 
 export interface UseSettingsReturn {
@@ -64,6 +68,10 @@ export interface UseSettingsReturn {
   tabConfiguration: TabWindowConfig;
   updateTabConfiguration: (config: TabVisibilityConfig) => void;
   resetTabConfiguration: () => void;
+  
+  // File system settings
+  fileSystemType: FileSystemType;
+  setFileSystemType: (type: FileSystemType) => void;
 }
 
 // Add interface to match ProviderSetting type
@@ -81,6 +89,7 @@ export function useSettings(): UseSettingsReturn {
   const [activeProviders, setActiveProviders] = useState<ProviderInfo[]>([]);
   const contextOptimizationEnabled = useStore(enableContextOptimizationStore);
   const tabConfiguration = useStore(tabConfigurationStore);
+  const fileSystemType = useStore(fileSystemTypeStore) as FileSystemType;
   const [settings, setSettings] = useState<Settings>(() => {
     const storedSettings = getLocalStorage('settings');
     return {
@@ -90,6 +99,7 @@ export function useSettings(): UseSettingsReturn {
       eventLogs: storedSettings?.eventLogs ?? true,
       timezone: storedSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
       tabConfiguration,
+      fileSystemType: fileSystemType || FileSystemType.WEB_CONTAINER,
     };
   });
 
@@ -144,6 +154,12 @@ export function useSettings(): UseSettingsReturn {
     updateContextOptimization(enabled);
     logStore.logSystem(`Context optimization ${enabled ? 'enabled' : 'disabled'}`);
   }, []);
+  
+  const setFileSystemType = useCallback((type: FileSystemType) => {
+    updateFileSystemType(type);
+    logStore.logSystem(`File system type changed to ${type}`);
+    saveSettings({ fileSystemType: type });
+  }, [saveSettings]);
 
   const setTheme = useCallback(
     (theme: Settings['theme']) => {
@@ -205,6 +221,8 @@ export function useSettings(): UseSettingsReturn {
     setTimezone,
     settings,
     tabConfiguration,
+    fileSystemType,
+    setFileSystemType,
     updateTabConfiguration: updateTabConfig,
     resetTabConfiguration: resetTabConfig,
   };

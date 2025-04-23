@@ -8,6 +8,10 @@ import { WORK_DIR } from '~/utils/constants';
 import { computeFileModifications } from '~/utils/diff';
 import { createScopedLogger } from '~/utils/logger';
 import { unreachable } from '~/utils/unreachable';
+import { createFileSystem } from '~/utils/file-system-interface';
+import type { FileSystemInterface } from '~/utils/file-system-interface';
+import { FileSystemType, getFileSystemType } from '~/utils/constants';
+import { fileSystemTypeStore } from '~/lib/stores/settings';
 
 const logger = createScopedLogger('FilesStore');
 
@@ -29,6 +33,7 @@ export type FileMap = Record<string, Dirent | undefined>;
 
 export class FilesStore {
   #webcontainer: Promise<WebContainer>;
+  #fileSystem: Promise<FileSystemInterface>;
 
   /**
    * Tracks the number of files without folders.
@@ -59,6 +64,18 @@ export class FilesStore {
   constructor(webcontainerPromise: Promise<WebContainer>) {
     this.#webcontainer = webcontainerPromise;
 
+    // Initialize the file system with the current preference
+    this.#fileSystem = this.#initializeFileSystem(webcontainerPromise);
+
+    // Subscribe to file system type changes and reinitialize when it changes
+    if (typeof window !== 'undefined') {
+      fileSystemTypeStore.subscribe(async () => {
+        logger.info('File system type changed, reinitializing file system');
+        this.#fileSystem = this.#initializeFileSystem(webcontainerPromise);
+        await this.#init(); // Reinitialize file watching
+      });
+    }
+
     // Load deleted paths from localStorage if available
     try {
       if (typeof localStorage !== 'undefined') {
@@ -86,11 +103,42 @@ export class FilesStore {
     this.#init();
   }
 
-  getFile(filePath: string) {
+  async #initializeFileSystem(webcontainer: Promise<WebContainer>): Promise<FileSystemInterface> {
+    const useWebContainer = getFileSystemType() === FileSystemType.WEB_CONTAINER;
+    logger.info(`Initializing file system with ${useWebContainer ? 'WebContainer' : 'OPFS'}`);
+    return createFileSystem(useWebContainer, webcontainer);
+  }
+
+  async getFile(filePath: string) {
     const dirent = this.files.get()[filePath];
 
     if (dirent?.type !== 'file') {
       return undefined;
+    }
+
+    // If the file content isn't in the cache and we're using OPFS,
+    // we need to explicitly load the content
+    if (dirent.content === undefined && getFileSystemType() === FileSystemType.OPFS) {
+      try {
+        const fileSystem = await this.#fileSystem;
+        const buffer = await fileSystem.readFile(filePath);
+        const isBinary = isBinaryFile(buffer);
+
+        let content = '';
+        if (isBinary) {
+          content = Buffer.from(buffer).toString('base64');
+        } else {
+          content = this.#decodeFileContent(buffer);
+        }
+
+        // Update the file content in the store
+        this.files.setKey(filePath, { ...dirent, content, isBinary });
+
+        return { type: 'file', content, isBinary };
+      } catch (error) {
+        logger.error(`Failed to load file content for ${filePath}`, error);
+        return dirent;
+      }
     }
 
     return dirent;
@@ -99,6 +147,7 @@ export class FilesStore {
   getFileModifications() {
     return computeFileModifications(this.files.get(), this.#modifiedFiles);
   }
+
   getModifiedFiles() {
     let modifiedFiles: { [path: string]: File } | undefined = undefined;
 
@@ -128,22 +177,17 @@ export class FilesStore {
   }
 
   async saveFile(filePath: string, content: string) {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     try {
-      const relativePath = path.relative(webcontainer.workdir, filePath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid file path, write '${relativePath}'`);
-      }
-
-      const oldContent = this.getFile(filePath)?.content;
+      const file = await this.getFile(filePath);
+      const oldContent = file?.content;
 
       if (!oldContent && oldContent !== '') {
         unreachable('Expected content to be defined');
       }
 
-      await webcontainer.fs.writeFile(relativePath, content);
+      await fileSystem.writeFile(filePath, content);
 
       if (!this.#modifiedFiles.has(filePath)) {
         this.#modifiedFiles.set(filePath, oldContent);
@@ -161,15 +205,25 @@ export class FilesStore {
   }
 
   async #init() {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     // Clean up any files that were previously deleted
     this.#cleanupDeletedFiles();
 
-    webcontainer.internal.watchPaths(
-      { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
-      bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
-    );
+    // Set up file watcher
+    if (getFileSystemType() === FileSystemType.WEB_CONTAINER) {
+      // WebContainer implementation
+      fileSystem.watchPath(
+        { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
+        bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+      );
+    } else {
+      // OPFS implementation - use the same API but with polling
+      fileSystem.watchPath(
+        { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
+        bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+      );
+    }
   }
 
   /**
@@ -209,9 +263,15 @@ export class FilesStore {
 
   #processEventBuffer(events: Array<[events: PathWatcherEvent[]]>) {
     const watchEvents = events.flat(2);
+    const currentFileSystemType = getFileSystemType();
 
     for (const { type, path: eventPath, buffer } of watchEvents) {
-      // remove any trailing slashes
+      // Skip undefined paths
+      if (!eventPath) {
+        continue;
+      }
+
+      // Remove any trailing slashes
       const sanitizedPath = eventPath.replace(/\/+$/g, '');
 
       // Skip processing if this file/folder was explicitly deleted
@@ -220,7 +280,6 @@ export class FilesStore {
       }
 
       let isInDeletedFolder = false;
-
       for (const deletedPath of this.#deletedPaths) {
         if (sanitizedPath.startsWith(deletedPath + '/')) {
           isInDeletedFolder = true;
@@ -234,7 +293,6 @@ export class FilesStore {
 
       switch (type) {
         case 'add_dir': {
-          // we intentionally add a trailing slash so we can distinguish files from folders in the file tree
           this.files.setKey(sanitizedPath, { type: 'folder' });
           break;
         }
@@ -264,10 +322,8 @@ export class FilesStore {
           } else if (!isBinary) {
             content = this.#decodeFileContent(buffer);
 
-            /*
-             * If the content is a single space and this is from our empty file workaround,
-             * convert it back to an actual empty string
-             */
+            // If the content is a single space and this is from our empty file workaround,
+            // convert it back to an actual empty string
             if (content === ' ' && type === 'add_file') {
               content = '';
             }
@@ -277,6 +333,15 @@ export class FilesStore {
 
           if (existingFile?.type === 'file' && existingFile.isBinary && existingFile.content && !content) {
             content = existingFile.content;
+          }
+
+          // For OPFS, ensure we have content if buffer is undefined (may happen with poll-based watchers)
+          if (currentFileSystemType === FileSystemType.OPFS && !buffer && type === 'change') {
+            this.#loadFileContentAsync(sanitizedPath).catch((error) => {
+              logger.error(`Failed to load content for ${sanitizedPath}`, error);
+            });
+            // We'll update the content when the async operation completes
+            break;
           }
 
           this.files.setKey(sanitizedPath, { type: 'file', content, isBinary });
@@ -295,6 +360,28 @@ export class FilesStore {
     }
   }
 
+  // Helper method to load file content asynchronously for OPFS files
+  async #loadFileContentAsync(filePath: string) {
+    try {
+      const fileSystem = await this.#fileSystem;
+      const buffer = await fileSystem.readFile(filePath);
+
+      const isBinary = isBinaryFile(buffer);
+      let content = '';
+
+      if (isBinary) {
+        content = Buffer.from(buffer).toString('base64');
+      } else {
+        content = this.#decodeFileContent(buffer);
+      }
+
+      this.files.setKey(filePath, { type: 'file', content, isBinary });
+    } catch (error) {
+      // The file might have been deleted
+      logger.debug(`Could not load content for ${filePath}`, error);
+    }
+  }
+
   #decodeFileContent(buffer?: Uint8Array) {
     if (!buffer || buffer.byteLength === 0) {
       return '';
@@ -309,25 +396,19 @@ export class FilesStore {
   }
 
   async createFile(filePath: string, content: string | Uint8Array = '') {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     try {
-      const relativePath = path.relative(webcontainer.workdir, filePath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid file path, create '${relativePath}'`);
-      }
-
-      const dirPath = path.dirname(relativePath);
+      const dirPath = path.dirname(filePath);
 
       if (dirPath !== '.') {
-        await webcontainer.fs.mkdir(dirPath, { recursive: true });
+        await fileSystem.mkdir(dirPath, { recursive: true });
       }
 
       const isBinary = content instanceof Uint8Array;
 
       if (isBinary) {
-        await webcontainer.fs.writeFile(relativePath, Buffer.from(content));
+        await fileSystem.writeFile(filePath, Buffer.from(content));
 
         const base64Content = Buffer.from(content).toString('base64');
         this.files.setKey(filePath, { type: 'file', content: base64Content, isBinary: true });
@@ -335,7 +416,7 @@ export class FilesStore {
         this.#modifiedFiles.set(filePath, base64Content);
       } else {
         const contentToWrite = (content as string).length === 0 ? ' ' : content;
-        await webcontainer.fs.writeFile(relativePath, contentToWrite);
+        await fileSystem.writeFile(filePath, contentToWrite);
 
         this.files.setKey(filePath, { type: 'file', content: content as string, isBinary: false });
 
@@ -352,16 +433,10 @@ export class FilesStore {
   }
 
   async createFolder(folderPath: string) {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     try {
-      const relativePath = path.relative(webcontainer.workdir, folderPath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid folder path, create '${relativePath}'`);
-      }
-
-      await webcontainer.fs.mkdir(relativePath, { recursive: true });
+      await fileSystem.mkdir(folderPath, { recursive: true });
 
       this.files.setKey(folderPath, { type: 'folder' });
 
@@ -375,16 +450,10 @@ export class FilesStore {
   }
 
   async deleteFile(filePath: string) {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     try {
-      const relativePath = path.relative(webcontainer.workdir, filePath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid file path, delete '${relativePath}'`);
-      }
-
-      await webcontainer.fs.rm(relativePath);
+      await fileSystem.rm(filePath);
 
       this.#deletedPaths.add(filePath);
 
@@ -407,16 +476,10 @@ export class FilesStore {
   }
 
   async deleteFolder(folderPath: string) {
-    const webcontainer = await this.#webcontainer;
+    const fileSystem = await this.#fileSystem;
 
     try {
-      const relativePath = path.relative(webcontainer.workdir, folderPath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid folder path, delete '${relativePath}'`);
-      }
-
-      await webcontainer.fs.rm(relativePath, { recursive: true });
+      await fileSystem.rm(folderPath, { recursive: true });
 
       this.#deletedPaths.add(folderPath);
 

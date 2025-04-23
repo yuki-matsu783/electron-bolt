@@ -9,6 +9,14 @@ export function createWindow(rendererURL: string) {
   const bounds = store.get('bounds');
   console.log('restored bounds:', bounds);
 
+  // Determine the correct preload script path
+  // Using an absolute path instead of relying on app.getAppPath()
+  const preloadPath = isDev
+    ? path.resolve(process.cwd(), 'build', 'electron', 'preload', 'index.cjs')
+    : path.join(app.getAppPath(), 'build', 'electron', 'preload', 'index.cjs');
+
+  console.log('Using preload path:', preloadPath);
+
   const win = new BrowserWindow({
     ...{
       width: 1200,
@@ -18,7 +26,7 @@ export function createWindow(rendererURL: string) {
     vibrancy: 'under-window',
     visualEffectState: 'active',
     webPreferences: {
-      preload: path.join(app.getAppPath(), 'build', 'electron', 'preload', 'index.cjs'),
+      preload: preloadPath,
     },
   });
 

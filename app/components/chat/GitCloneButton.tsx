@@ -155,7 +155,7 @@ ${escapeBoltTags(file.content)}
     <>
       <Button
         onClick={() => setIsDialogOpen(true)}
-        title="Clone a Git Repo"
+        title="Clone from GitLab"
         variant="outline"
         size="lg"
         className={classNames(
@@ -170,7 +170,7 @@ ${escapeBoltTags(file.content)}
         disabled={!ready || loading}
       >
         <span className="i-ph:git-branch w-4 h-4" />
-        Clone a Git Repo
+        Clone from GitLab
       </Button>
 
       <RepositorySelectionDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSelect={handleClone} />

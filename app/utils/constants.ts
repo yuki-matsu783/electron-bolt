@@ -9,6 +9,18 @@ export const PROVIDER_REGEX = /\[Provider: (.*?)\]\n\n/;
 export const DEFAULT_MODEL = 'claude-3-5-sonnet-latest';
 export const PROMPT_COOKIE_KEY = 'cachedPrompt';
 
+// File system configuration
+export enum FileSystemType {
+  WEB_CONTAINER = 'webcontainer',
+  OPFS = 'opfs' // Origin Private File System
+}
+
+// Default to OPFS if not specified
+export const getFileSystemType = (): FileSystemType => {
+  const fsType = import.meta.env.VITE_FILE_SYSTEM_TYPE as string || localStorage.getItem('bolt_file_system_type');
+  return fsType === FileSystemType.WEB_CONTAINER ? FileSystemType.WEB_CONTAINER : FileSystemType.OPFS;
+};
+
 const llmManager = LLMManager.getInstance(import.meta.env);
 
 export const PROVIDER_LIST = llmManager.getAllProviders();
