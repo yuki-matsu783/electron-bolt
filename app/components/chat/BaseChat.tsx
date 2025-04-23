@@ -19,26 +19,20 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
-import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import GitCloneButton from './GitCloneButton';
-
 import FilePreview from './FilePreview';
 import { ModelSelector } from '~/components/chat/ModelSelector';
 import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
-import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
-import DeployChatAlert from '~/components/deploy/DeployAlert';
 import ChatAlert from './ChatAlert';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import ProgressCompilation from './ProgressCompilation';
 import type { ProgressAnnotation } from '~/types/context';
 import type { ActionRunner } from '~/lib/runtime/action-runner';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
-import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
-import { SupabaseConnection } from './SupabaseConnection';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -329,11 +323,19 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             {!chatStarted && (
               <div id="intro" className="mt-[16vh] max-w-chat mx-auto text-center px-4 lg:px-0">
                 <h1 className="text-3xl lg:text-6xl font-bold text-bolt-elements-textPrimary mb-4 animate-fade-in">
-                  いつも何度でも
+                  生成AIでUI作成
                 </h1>
                 <p className="text-md lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
-                  Bring ideas to life in seconds or get help on existing projects.
+                  元にするファイルを選択してください
                 </p>
+                <div className="flex flex-col justify-center gap-5">
+              {!chatStarted && (
+                <div className="flex justify-center gap-2">
+                  {ImportButtons(importChat)}
+                  <GitCloneButton importChat={importChat} />
+                </div>
+              )}
+            </div>
               </div>
             )}
             <div
@@ -354,26 +356,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   ) : null;
                 }}
               </ClientOnly>
-              {deployAlert && (
-                <DeployChatAlert
-                  alert={deployAlert}
-                  clearAlert={() => clearDeployAlert?.()}
-                  postMessage={(message: string | undefined) => {
-                    sendMessage?.({} as any, message);
-                    clearSupabaseAlert?.();
-                  }}
-                />
-              )}
-              {supabaseAlert && (
-                <SupabaseChatAlert
-                  alert={supabaseAlert}
-                  clearAlert={() => clearSupabaseAlert?.()}
-                  postMessage={(message) => {
-                    sendMessage?.({} as any, message);
-                    clearSupabaseAlert?.();
-                  }}
-                />
-              )}
               <div
                 className={classNames('flex flex-col gap-4 w-full max-w-chat mx-auto z-prompt mb-6', {
                   'sticky bottom-2': chatStarted,
@@ -621,29 +603,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           a new line
                         </div>
                       ) : null}
-                      <SupabaseConnection />
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-col justify-center gap-5">
-              {!chatStarted && (
-                <div className="flex justify-center gap-2">
-                  {ImportButtons(importChat)}
-                  <GitCloneButton importChat={importChat} />
-                </div>
-              )}
-              {!chatStarted &&
-                ExamplePrompts((event, messageInput) => {
-                  if (isStreaming) {
-                    handleStop?.();
-                    return;
-                  }
-
-                  handleSendMessage?.(event, messageInput);
-                })}
-              {!chatStarted && <StarterTemplates />}
             </div>
           </div>
           <ClientOnly>
