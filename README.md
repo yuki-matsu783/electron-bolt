@@ -340,3 +340,426 @@ graph LR
 - 自動更新
 - コード署名
 - インストーラーの生成
+
+# コーディング規約とベストプラクティス
+
+## 1. 基本原則
+
+### a) コード品質
+- 可読性の高い、メンテナンス可能なコードの作成
+- 一貫したフォーマットとネーミング規則の遵守
+- モジュール化と再利用可能なコンポーネントの設計
+
+### b) ファイル構造
+```typescript
+// 推奨されるファイルサイズと構造
+const FILE_GUIDELINES = {
+  maxLines: 250,          // 1ファイルの最大行数
+  componentLimit: 100,    // Reactコンポーネントの最大行数
+  moduleLimit: 150,       // ユーティリティモジュールの最大行数
+  testRatio: 1.5         // テストコードと実装コードの比率目標
+};
+```
+
+## 2. コーディングスタイル
+
+### a) TypeScript/JavaScript
+```typescript
+// 推奨される記述スタイル
+interface StyleGuidelines {
+  indentation: '2 spaces';     // インデント
+  quotes: 'single';            // 文字列クォート
+  semicolons: 'always';        // セミコロン
+  brackets: 'same-line';       // 波括弧
+}
+
+// 良い例
+function calculateTotal(items: Item[]): number {
+  return items.reduce((sum, item) => {
+    return sum + item.price;
+  }, 0);
+}
+
+// 避けるべき例
+function calculateTotal(items: Item[]) 
+{
+  var total = 0
+  for(var i=0;i<items.length;i++)
+  {
+    total+=items[i].price
+  }
+  return total
+}
+```
+
+### b) Reactコンポーネント
+```tsx
+// コンポーネントの基本構造
+interface ComponentStructure {
+  imports: 'grouped by type';
+  interfaces: 'top of file';
+  hooks: 'before render';
+  helpers: 'after hooks';
+  render: 'last';
+}
+
+// 推奨される実装例
+import { useEffect, useState } from 'react';
+import { classNames } from '~/utils/classNames';
+
+interface Props {
+  data: DataType;
+  onUpdate: (data: DataType) => void;
+}
+
+export const ExampleComponent: React.FC<Props> = ({ data, onUpdate }) => {
+  const [state, setState] = useState(initialState);
+
+  useEffect(() => {
+    // 副作用の処理
+  }, [data]);
+
+  const handleChange = () => {
+    // イベントハンドラの実装
+  };
+
+  return (
+    <div className={classNames('base-class', { 'active': state.isActive })}>
+      {/* JSX実装 */}
+    </div>
+  );
+};
+```
+
+## 3. プロジェクト規約
+
+### a) ファイル命名規則
+```text
+components/         
+  ├── feature/      - 機能単位のコンポーネント
+  │   └── PascalCase.tsx
+  ├── common/       - 共通コンポーネント
+  │   └── PascalCase.tsx
+  └── layouts/      - レイアウトコンポーネント
+      └── PascalCase.tsx
+
+hooks/              
+  └── camelCase.ts  - カスタムフック
+
+utils/              
+  └── camelCase.ts  - ユーティリティ関数
+
+types/              
+  └── PascalCase.ts - 型定義
+```
+
+### b) インポート順序
+```typescript
+// 1. React/フレームワークインポート
+import { useState } from 'react';
+
+// 2. サードパーティライブラリ
+import { classNames } from 'classnames';
+
+// 3. プロジェクト内の型定義
+import type { DataType } from '~/types';
+
+// 4. コンポーネント/フック
+import { useCustomHook } from '~/hooks';
+
+// 5. ユーティリティ/定数
+import { formatDate } from '~/utils';
+
+// 6. スタイル
+import styles from './Component.module.scss';
+```
+
+## 4. エラーハンドリング
+
+### a) 基本原則
+```typescript
+// エラーハンドリングの階層構造
+interface ErrorHandlingLayers {
+  presentation: 'コンポーネントレベルでのUI表示';
+  business: 'ビジネスロジックでの処理';
+  data: 'データアクセス層での捕捉';
+  global: 'アプリケーション全体のフォールバック';
+}
+
+// 実装例
+try {
+  await dataOperation();
+} catch (error) {
+  if (error instanceof NetworkError) {
+    notifyUser('ネットワークエラー');
+  } else if (error instanceof ValidationError) {
+    showValidationErrors(error.details);
+  } else {
+    reportToErrorTracking(error);
+  }
+}
+```
+
+### b) エラーバウンダリ
+```tsx
+class ErrorBoundary extends React.Component<Props, State> {
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    logErrorToService(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorFallback error={this.state.error} />;
+    }
+    return this.props.children;
+  }
+}
+```
+
+## 5. パフォーマンス最適化
+
+### a) レンダリング最適化
+```typescript
+// メモ化のベストプラクティス
+interface MemoizationGuidelines {
+  components: 'props比較が妥当な場合のみ使用';
+  callbacks: 'useCallbackで依存関係を明示';
+  values: 'useMemoで計算コストの高い処理を最適化';
+}
+
+// 実装例
+const MemoizedComponent = React.memo(({ data }) => (
+  <ExpensiveRendering data={data} />
+));
+
+const handleChange = useCallback(() => {
+  process(dependencies);
+}, [dependencies]);
+
+const computedValue = useMemo(() => {
+  return expensiveComputation(data);
+}, [data]);
+```
+
+### b) バンドルサイズの最適化
+```typescript
+// コード分割の指針
+interface CodeSplittingGuidelines {
+  routes: 'ページ単位でのコード分割';
+  components: '大きなコンポーネントの遅延ロード';
+  modules: '重いサードパーティモジュールの分割';
+}
+
+// 実装例
+const HeavyComponent = lazy(() => 
+  import('./HeavyComponent')
+);
+
+<Suspense fallback={<Loading />}>
+  <HeavyComponent />
+</Suspense>
+```
+
+## 6. テスト規約
+
+### a) テスト構造
+```typescript
+// テストファイルの基本構造
+describe('ComponentName', () => {
+  // セットアップ
+  beforeEach(() => {
+    // テスト環境の準備
+  });
+
+  // 機能テスト
+  it('should handle primary functionality', () => {
+    // テスト実装
+  });
+
+  // エッジケース
+  it('should handle edge cases', () => {
+    // エッジケースのテスト
+  });
+
+  // クリーンアップ
+  afterEach(() => {
+    // テスト環境のクリーンアップ
+  });
+});
+```
+
+### b) テストカバレッジ要件
+```typescript
+interface CoverageRequirements {
+  statements: '最低80%のステートメントカバレッジ';
+  branches: '最低70%の分岐カバレッジ';
+  functions: '最低90%の関数カバレッジ';
+  lines: '最低80%の行カバレッジ';
+}
+```
+
+これらの規約と実践により、コードベースの品質、保守性、パフォーマンスが向上し、開発者の生産性も高まります。また、新しい機能の追加や既存コードの修正がより安全かつ効率的に行えるようになります。
+
+# コンテキスト最適化の詳細
+
+## 1. コンテキスト最適化の概要
+
+### a) 最適化の目的
+- 大規模なコードベースからの効率的な関連ファイルの抽出
+- トークン数の削減とコスト最適化
+- 応答品質の向上
+
+### b) 主要コンポーネント
+```typescript
+interface ContextOptimizationProps {
+  messages: Message[];         // 対話履歴
+  files: FileMap;             // プロジェクトファイル
+  summary: string;            // 対話サマリー
+  contextFiles?: FileMap;     // 最適化されたコンテキスト
+}
+```
+
+## 2. 最適化プロセス
+
+### a) チャットサマリーの生成（create-summary.ts）
+```typescript
+// サマリー生成の構造化フォーマット
+interface ChatSummary {
+  project: {
+    name: string;
+    phase: string;
+    techStack: string[];
+  };
+  context: {
+    lastTopic: string;
+    decisions: string[];
+    userPreferences: {
+      technicalLevel: string;
+      codingStyle: string[];
+    }
+  };
+  implementation: {
+    currentState: string;
+    activeFeature: string;
+  };
+}
+```
+
+### b) コンテキスト選択プロセス（select-context.ts）
+
+1. 現在のコンテキストの分析:
+```typescript
+const { codeContext } = extractCurrentContext(messages);
+if (codeContext?.type === 'codeContext') {
+  // 既存のコンテキストファイルを保持
+  Object.keys(files).forEach((path) => {
+    if (codeContext.files.includes(path)) {
+      contextFiles[path] = files[path];
+    }
+  });
+}
+```
+
+2. ファイルの選択:
+```typescript
+// コンテキストバッファーの更新命令フォーマット
+<updateContextBuffer>
+  <includeFile path="関連ファイルパス"/>
+  <excludeFile path="不要なファイルパス"/>
+</updateContextBuffer>
+```
+
+3. 最適化ルール:
+- バッファーサイズの制限（最大5ファイル）
+- 関連性に基づく優先順位付け
+- 差分更新による効率化
+
+## 3. 実装の詳細
+
+### a) ストリーミング時の処理（stream-text.ts）
+```typescript
+if (files && contextFiles && contextOptimization) {
+  // システムプロンプトにコンテキスト情報を追加
+  systemPrompt = `${systemPrompt}
+    Below are all the files present in the project:
+    ---
+    ${filePaths.join('\n')}
+    ---
+    CONTEXT BUFFER:
+    ---
+    ${codeContext}
+    ---
+  `;
+}
+```
+
+### b) アノテーション管理
+```typescript
+interface ContextAnnotation {
+  type: 'codeContext';
+  files: string[];           // 関連ファイルパス
+  messageId?: string;        // 関連メッセージID
+}
+```
+
+### c) パフォーマンス最適化:
+1. ファイル除外パターン:
+```typescript
+const IGNORE_PATTERNS = [
+  'node_modules/**',
+  '.git/**',
+  'dist/**',
+  '**/*.log'
+];
+```
+
+2. インクリメンタルアップデート:
+```typescript
+const currentFiles = new Set(contextFiles.keys());
+includeFiles.forEach(path => {
+  if (!currentFiles.has(path)) {
+    filteredFiles[path] = files[path];
+  }
+});
+```
+
+## 4. エラーハンドリングとフォールバック
+
+### a) エラー検出
+- 不正なファイルパス
+- コンテキストバッファーの上限超過
+- 必須ファイルの欠落
+
+### b) リカバリー戦略
+1. 自動フォールバック:
+```typescript
+if (totalFiles === 0) {
+  // 最低限必要なファイルを含める
+  return {
+    'package.json': files['package.json'],
+    'tsconfig.json': files['tsconfig.json']
+  };
+}
+```
+
+2. インクリメンタルリカバリー:
+- 部分的なコンテキスト保持
+- 段階的な再最適化
+
+## 5. モニタリングと分析
+
+### a) メトリクス収集
+- コンテキストサイズ
+- 選択精度
+- 応答品質との相関
+
+### b) 最適化フィードバック
+- ユーザーの修正パターン
+- ファイル選択の学習
+- コンテキスト依存関係の分析
+
+これらの実装により、AIはプロジェクトのコンテキストを効率的に理解し、より適切な応答を生成することが可能になります。また、トークン使用量の最適化とレスポンス品質の向上を両立させています。
