@@ -35,6 +35,13 @@ type Artifacts = MapStore<Record<string, ArtifactState>>;
 
 export type WorkbenchViewType = 'code' | 'diff' | 'preview';
 
+/**
+ * ワークベンチの状態を管理するストアクラス
+ * - プレビューの管理
+ * - ファイル操作
+ * - エディタの状態管理
+ * - 実行キューの制御
+ */
 export class WorkbenchStore {
   #previewsStore = new PreviewsStore(webcontainer);
   #filesStore = new FilesStore(webcontainer);
@@ -57,6 +64,12 @@ export class WorkbenchStore {
   modifiedFiles = new Set<string>();
   artifactIdList: string[] = [];
   #globalExecutionQueue = Promise.resolve();
+
+  /**
+   * コンストラクタ
+   * - ホットリロード時の状態保持
+   * - バイナリファイルの処理
+   */
   constructor() {
     if (import.meta.hot) {
       import.meta.hot.data.artifacts = this.artifacts;
@@ -79,6 +92,10 @@ export class WorkbenchStore {
     }
   }
 
+  /**
+   * 実行キューにコールバックを追加
+   * @param callback 実行するコールバック関数
+   */
   addToExecutionQueue(callback: () => Promise<void>) {
     this.#globalExecutionQueue = this.#globalExecutionQueue.then(() => callback());
   }
@@ -531,6 +548,12 @@ export class WorkbenchStore {
     return artifacts[id];
   }
 
+  /**
+   * ファイルのZIPダウンロードを実行
+   * - プロジェクト名とタイムスタンプからユニークな名前を生成
+   * - ファイルをZIPアーカイブに追加
+   * - ダウンロードを開始
+   */
   async downloadZip() {
     const zip = new JSZip();
     const files = this.files.get();
@@ -569,6 +592,10 @@ export class WorkbenchStore {
     saveAs(content, `${uniqueProjectName}.zip`);
   }
 
+  /**
+   * ローカルファイルシステムとの同期を実行
+   * @param targetHandle 同期先のディレクトリハンドル
+   */
   async syncFiles(targetHandle: FileSystemDirectoryHandle) {
     const files = this.files.get();
     const syncedFiles = [];

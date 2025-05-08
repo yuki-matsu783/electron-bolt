@@ -1,7 +1,15 @@
+/**
+ * アプリケーションシステム情報を提供するAPI
+ * - アプリケーションバージョン
+ * - パッケージ情報
+ * - Git情報
+ * - 依存関係
+ */
+
 import type { ActionFunctionArgs, LoaderFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 
-// These are injected by Vite at build time
+// Viteによって注入される環境変数
 declare const __APP_VERSION: string;
 declare const __PKG_NAME: string;
 declare const __PKG_DESCRIPTION: string;
@@ -18,6 +26,10 @@ declare const __GIT_EMAIL: string;
 declare const __GIT_REMOTE_URL: string;
 declare const __GIT_REPO_NAME: string;
 
+/**
+ * Gitリポジトリの情報を取得
+ * @returns Gitリポジトリの詳細情報
+ */
 const getGitInfo = () => {
   return {
     commitHash: __COMMIT_HASH || 'unknown',
@@ -30,106 +42,56 @@ const getGitInfo = () => {
   };
 };
 
-const formatDependencies = (
-  deps: Record<string, string>,
-  type: 'production' | 'development' | 'peer' | 'optional',
-): Array<{ name: string; version: string; type: string }> => {
-  return Object.entries(deps || {}).map(([name, version]) => ({
-    name,
-    version: version.replace(/^\^|~/, ''),
-    type,
-  }));
-};
-
-const getAppResponse = () => {
-  const gitInfo = getGitInfo();
-
+/**
+ * パッケージの依存関係情報を取得
+ * @returns 各種依存パッケージの情報
+ */
+const getDependencies = () => {
   return {
-    name: __PKG_NAME || 'bolt.diy',
-    version: __APP_VERSION || '0.1.0',
-    description: __PKG_DESCRIPTION || 'A DIY LLM interface',
-    license: __PKG_LICENSE || 'MIT',
-    environment: 'cloudflare',
-    gitInfo,
-    timestamp: new Date().toISOString(),
-    runtimeInfo: {
-      nodeVersion: 'cloudflare',
-    },
-    dependencies: {
-      production: formatDependencies(__PKG_DEPENDENCIES, 'production'),
-      development: formatDependencies(__PKG_DEV_DEPENDENCIES, 'development'),
-      peer: formatDependencies(__PKG_PEER_DEPENDENCIES, 'peer'),
-      optional: formatDependencies(__PKG_OPTIONAL_DEPENDENCIES, 'optional'),
-    },
+    dependencies: __PKG_DEPENDENCIES || {},
+    devDependencies: __PKG_DEV_DEPENDENCIES || {},
+    peerDependencies: __PKG_PEER_DEPENDENCIES || {},
+    optionalDependencies: __PKG_OPTIONAL_DEPENDENCIES || {},
   };
 };
 
+/**
+ * システム情報全体を構築して返す
+ * @returns アプリケーションの完全なシステム情報
+ */
+const getAppInfo = () => {
+  return {
+    name: __PKG_NAME || 'unknown',
+    version: __APP_VERSION || 'unknown',
+    description: __PKG_DESCRIPTION || '',
+    license: __PKG_LICENSE || 'unknown',
+    git: getGitInfo(),
+    dependencies: getDependencies(),
+  };
+};
+
+/**
+ * GETリクエストのハンドラー
+ * システム情報を取得して返す
+ */
 export const loader: LoaderFunction = async ({ request: _request }) => {
   try {
-    return json(getAppResponse());
+    return json(getAppInfo());
   } catch (error) {
-    console.error('Failed to get webapp info:', error);
-    return json(
-      {
-        name: 'bolt.diy',
-        version: '0.0.0',
-        description: 'Error fetching app info',
-        license: 'MIT',
-        environment: 'error',
-        gitInfo: {
-          commitHash: 'error',
-          branch: 'unknown',
-          commitTime: 'unknown',
-          author: 'unknown',
-          email: 'unknown',
-          remoteUrl: 'unknown',
-          repoName: 'unknown',
-        },
-        timestamp: new Date().toISOString(),
-        runtimeInfo: { nodeVersion: 'unknown' },
-        dependencies: {
-          production: [],
-          development: [],
-          peer: [],
-          optional: [],
-        },
-      },
-      { status: 500 },
-    );
+    console.error('Failed to get app info:', error);
+    return json({ error: 'Failed to get app info' }, { status: 500 });
   }
 };
 
+/**
+ * POSTリクエストのハンドラー
+ * システム情報の更新を処理（現在は読み取り専用）
+ */
 export const action = async ({ request: _request }: ActionFunctionArgs) => {
   try {
-    return json(getAppResponse());
+    return json(getAppInfo());
   } catch (error) {
-    console.error('Failed to get webapp info:', error);
-    return json(
-      {
-        name: 'bolt.diy',
-        version: '0.0.0',
-        description: 'Error fetching app info',
-        license: 'MIT',
-        environment: 'error',
-        gitInfo: {
-          commitHash: 'error',
-          branch: 'unknown',
-          commitTime: 'unknown',
-          author: 'unknown',
-          email: 'unknown',
-          remoteUrl: 'unknown',
-          repoName: 'unknown',
-        },
-        timestamp: new Date().toISOString(),
-        runtimeInfo: { nodeVersion: 'unknown' },
-        dependencies: {
-          production: [],
-          development: [],
-          peer: [],
-          optional: [],
-        },
-      },
-      { status: 500 },
-    );
+    console.error('Failed to get app info:', error);
+    return json({ error: 'Failed to get app info' }, { status: 500 });
   }
 };

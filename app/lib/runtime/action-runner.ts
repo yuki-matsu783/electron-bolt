@@ -63,6 +63,13 @@ class ActionCommandError extends Error {
   }
 }
 
+/**
+ * アクションの実行を管理するクラス
+ * - シェルコマンドの実行
+ * - ファイル操作
+ * - ビルド処理
+ * - Supabaseとの連携
+ */
 export class ActionRunner {
   #webcontainer: Promise<WebContainer>;
   #currentExecutionPromise: Promise<void> = Promise.resolve();
@@ -74,6 +81,14 @@ export class ActionRunner {
   onDeployAlert?: (alert: DeployAlert) => void;
   buildOutput?: { path: string; exitCode: number; output: string };
 
+  /**
+   * ActionRunnerのコンストラクタ
+   * @param webcontainerPromise WebContainerインスタンスのPromise
+   * @param getShellTerminal シェルターミナル取得関数
+   * @param onAlert アラート通知コールバック
+   * @param onSupabaseAlert Supabaseアラート通知コールバック
+   * @param onDeployAlert デプロイアラート通知コールバック
+   */
   constructor(
     webcontainerPromise: Promise<WebContainer>,
     getShellTerminal: () => BoltShell,
@@ -88,6 +103,10 @@ export class ActionRunner {
     this.onDeployAlert = onDeployAlert;
   }
 
+  /**
+   * アクションを実行キューに追加
+   * @param data アクションのコールバックデータ
+   */
   addAction(data: ActionCallbackData) {
     const { actionId } = data;
 
@@ -95,7 +114,7 @@ export class ActionRunner {
     const action = actions[actionId];
 
     if (action) {
-      // action already added
+      // 既に追加済みの場合は何もしない
       return;
     }
 
@@ -148,6 +167,11 @@ export class ActionRunner {
     return;
   }
 
+  /**
+   * アクションを実行
+   * @param actionId アクションID
+   * @param isStreaming ストリーミング実行フラグ
+   */
   async #executeAction(actionId: string, isStreaming: boolean = false) {
     const action = this.actions.get()[actionId];
 
@@ -247,6 +271,10 @@ export class ActionRunner {
     }
   }
 
+  /**
+   * シェルアクションを実行
+   * @param action 実行するアクション
+   */
   async #runShellAction(action: ActionState) {
     if (action.type !== 'shell') {
       unreachable('Expected shell action');
@@ -299,6 +327,10 @@ export class ActionRunner {
     return resp;
   }
 
+  /**
+   * ファイルアクションを実行
+   * @param action 実行するアクション
+   */
   async #runFileAction(action: ActionState) {
     if (action.type !== 'file') {
       unreachable('Expected file action');
@@ -309,26 +341,31 @@ export class ActionRunner {
 
     let folder = nodePath.dirname(relativePath);
 
-    // remove trailing slashes
+    // 末尾のスラッシュを削除
     folder = folder.replace(/\/+$/g, '');
 
     if (folder !== '.') {
       try {
         await webcontainer.fs.mkdir(folder, { recursive: true });
-        logger.debug('Created folder', folder);
+        logger.debug('フォルダを作成:', folder);
       } catch (error) {
-        logger.error('Failed to create folder\n\n', error);
+        logger.error('フォルダ作成失敗:', error);
       }
     }
 
     try {
       await webcontainer.fs.writeFile(relativePath, action.content);
-      logger.debug(`File written ${relativePath}`);
+      logger.debug(`ファイル書き込み完了: ${relativePath}`);
     } catch (error) {
-      logger.error('Failed to write file\n\n', error);
+      logger.error('ファイル書き込み失敗:', error);
     }
   }
 
+  /**
+   * アクションの状態を更新
+   * @param id アクションID
+   * @param newState 新しい状態
+   */
   #updateAction(id: string, newState: ActionStateUpdate) {
     const actions = this.actions.get();
 

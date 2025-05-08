@@ -1,59 +1,49 @@
 /**
  * BackgroundRays コンポーネントのスタイル
- * 画面背景に緑系のグラデーションの光線効果を表示する
+ * - 画面背景に動的な光線エフェクトを表示
+ * - テーマに応じて異なるブレンドモードを適用
+ * - アニメーションによる自然な動きを実現
  */
 
 .rayContainer {
-  // テーマカラーの定義
-  --primary-color: #22c55e; // 緑系のプライマリカラー - メインの光線効果に使用
-  --secondary-color: #e86666; // 濃い緑のセカンダリカラー - 補助的な光線効果に使用
-  --accent-color:  #f97316;// オレンジのアクセントカラー - アクセント効果用の光線に使用
+  // テーマカラーの定義 - 各光線の基本色
+  --primary-color: #22c55e; // メインの緑色の光線
+  --secondary-color: #e86666; // アクセントとなる赤色の光線
+  --accent-color: #f97316; // 補助的なオレンジ色の光線
   
-  // 各色の透明度を30%に設定したカラー変数
+  // 透明度を含むカラー変数の定義
   --ray-color-primary: color-mix(in srgb, var(--primary-color), transparent 30%);
   --ray-color-secondary: color-mix(in srgb, var(--secondary-color), transparent 30%);
   --ray-color-accent: color-mix(in srgb, var(--accent-color), transparent 30%);
 
-  // 各光線のグラデーション定義 - 中心から外側に向かって透明になる
+  // グラデーション定義 - 中心から外側に向かって徐々に透明化
   --ray-gradient-primary: radial-gradient(var(--ray-color-primary) 0%, transparent 70%);
   --ray-gradient-secondary: radial-gradient(var(--ray-color-secondary) 0%, transparent 70%);
   --ray-gradient-accent: radial-gradient(var(--ray-color-accent) 0%, transparent 70%);
 
-  // 光線コンテナの配置と表示設定
-  position: fixed; // 画面に固定
-  inset: 0; // 画面全体に広がるように設定
-  overflow: hidden; // はみ出した部分を非表示
-  animation: fadeIn 1.5s ease-out; // フェードイン効果
-  pointer-events: none; // マウスイベントを透過
-  z-index: 0; // 重なり順を最背面に設定
-  //   background-color: transparent;
+  // コンテナの基本設定
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  animation: fadeIn 1.5s ease-out;
+  pointer-events: none;
+  z-index: 0;
 
-  // ダークテーマ時のブレンドモード設定
+  // テーマ別のブレンドモード設定
   :global(html[data-theme='dark']) & {
-    mix-blend-mode: screen; // 光源として重ね合わせる
+    mix-blend-mode: screen; // ダークテーマでは光として重ねる
   }
 
-  // ライトテーマ時のブレンドモード設定
   :global(html[data-theme='light']) & {
-    mix-blend-mode: darken; // 色を重ね合わせる
+    mix-blend-mode: darken; // ライトテーマでは色を重ねる
+    opacity: 0.4;
   }
 }
 
-// 各光線の共通スタイル
+// 光線の共通スタイル
 .lightRay {
-  position: absolute; // 絶対位置指定
-  border-radius: 50%; // 円形のグラデーション
-
-  // ダークテーマ時の表示設定
-  :global(html[data-theme='dark']) & {
-    mix-blend-mode: screen; // 光源として重ね合わせる
-  }
-
-  // ライトテーマ時の表示設定
-  :global(html[data-theme='light']) & {
-    mix-blend-mode: darken; // 色を重ね合わせる
-    opacity: 0.4; // 不透明度を下げて薄く表示
-  }
+  position: absolute;
+  border-radius: 50%;
 }
 
 // 以下、各光線の個別設定
