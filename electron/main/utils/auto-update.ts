@@ -1,3 +1,7 @@
+/**
+ * Electronアプリケーションの自動更新機能を管理するモジュール
+ */
+
 import logger from 'electron-log';
 import type { MessageBoxOptions } from 'electron';
 import { app, dialog } from 'electron';
@@ -10,12 +14,18 @@ import { isDev } from './constants';
 
 const autoUpdater: AppUpdater = (electronUpdater as any).default.autoUpdater;
 
+/**
+ * アプリケーションの自動更新機能をセットアップする
+ * - ロガーの設定
+ * - アップデート設定ファイルの読み込み
+ * - アップデートイベントのハンドラー設定
+ */
 export async function setupAutoUpdater() {
-  // Configure logger
+  // ロガーの設定
   logger.transports.file.level = 'debug';
   autoUpdater.logger = logger;
 
-  // Configure custom update config file
+  // アップデート設定ファイルのパス設定
   const resourcePath = isDev
     ? path.join(process.cwd(), 'electron-update.yml')
     : path.join(app.getAppPath(), 'electron-update.yml');
@@ -52,33 +62,34 @@ export async function setupAutoUpdater() {
     logger.info('Update not available.');
   });
 
-  /*
-   * Uncomment this before we have any published updates on github releases.
-   * autoUpdater.on('error', (err) => {
-   *   logger.error('Error in auto-updater:', err);
-   *   dialog.showErrorBox('Error: ', err.message);
-   * });
+  /**
+   * アップデートのエラーハンドラー
    */
+  autoUpdater.on('error', (error) => {
+    logger.error('Error in auto-updater:', error);
+  });
 
   autoUpdater.on('download-progress', (progressObj) => {
     logger.info('Download progress:', progressObj);
   });
 
+  /**
+   * アップデートのダウンロード完了ハンドラー
+   */
   autoUpdater.on('update-downloaded', async (event: UpdateDownloadedEvent) => {
     logger.info('Update downloaded:', formatUpdateDownloadedEvent(event));
 
     const dialogOpts: MessageBoxOptions = {
-      type: 'info' as const,
-      buttons: ['Restart', 'Later'],
-      title: 'Application Update',
-      message: 'Update Downloaded',
-      detail: 'A new version has been downloaded. Restart the application to apply the updates.',
+      type: 'info',
+      buttons: ['再起動', '後で'],
+      title: 'アプリケーションアップデート',
+      message: 'アップデートがダウンロードされました',
+      detail: 'アプリケーションを再起動して、アップデートを適用します。',
     };
 
-    const response = await dialog.showMessageBox(dialogOpts);
-
-    if (response.response === 0) {
-      autoUpdater.quitAndInstall(false);
+    const { response } = await dialog.showMessageBox(dialogOpts);
+    if (response === 0) {
+      autoUpdater.quitAndInstall();
     }
   });
 
@@ -101,6 +112,11 @@ export async function setupAutoUpdater() {
   );
 }
 
+/**
+ * アップデートイベントの情報をJSON形式に変換する
+ * @param event アップデートのダウンロード完了イベント
+ * @returns JSON形式のアップデート情報
+ */
 function formatUpdateDownloadedEvent(event: UpdateDownloadedEvent): string {
   return JSON.stringify({
     version: event.version,

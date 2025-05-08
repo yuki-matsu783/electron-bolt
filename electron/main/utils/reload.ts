@@ -9,6 +9,12 @@ let reloadTimeout: NodeJS.Timeout | null = null;
 const abort = new AbortController();
 const { signal } = abort;
 
+/**
+ * 開発モードでのファイル変更監視とホットリロードを設定する
+ * - プリロードスクリプトの変更時はウィンドウのみをリロード
+ * - メインプロセスの変更時はアプリケーション全体を再起動
+ * - 重複リロードを防ぐために遅延を設定
+ */
 export async function reloadOnChange() {
   // 開発モードでなければ監視不要
   if (!isDev) {
@@ -25,12 +31,6 @@ export async function reloadOnChange() {
       console.log(`Detected file change: ${event.filename}`);
       
       // 変更が検出されたらリロードを準備（短時間内の複数変更をまとめて処理）
-      if (!isQuited) {
-        if (reloadTimeout) {
-          clearTimeout(reloadTimeout);
-        }
-        
-        reloadTimeout = setTimeout(() => {
           // プリロードファイルの変更の場合、ウィンドウのみをリロード
           if (event.filename?.includes('preload')) {
             const windows = BrowserWindow.getAllWindows();

@@ -1,3 +1,12 @@
+/**
+ * Electronアプリケーションのメインエントリーポイント
+ * - アプリケーションの初期化
+ * - プロトコルハンドラーの設定
+ * - サーバービルドのロード
+ * - ウィンドウの作成
+ * - IPCハンドラーの設定
+ */
+
 /// <reference types="vite/client" />
 import { createRequestHandler } from '@remix-run/node';
 import electron, { app, BrowserWindow, ipcMain, protocol, session } from 'electron';
@@ -20,15 +29,27 @@ console.log('main: isDev:', isDev);
 console.log('NODE_ENV:', global.process.env.NODE_ENV);
 console.log('isPackaged:', app.isPackaged);
 
-// Log unhandled errors
+/**
+ * 未処理のエラーをログに記録するハンドラー
+ */
 process.on('uncaughtException', async (error) => {
   console.log('Uncaught Exception:', error);
 });
 
+/**
+ * 未処理のPromiseリジェクションをログに記録するハンドラー
+ */
 process.on('unhandledRejection', async (error) => {
   console.log('Unhandled Rejection:', error);
 });
 
+/**
+ * アプリケーションのパス設定を初期化する
+ * - アプリデータディレクトリ
+ * - ユーザーデータディレクトリ
+ * - セッションデータディレクトリ
+ * - ログディレクトリ
+ */
 (() => {
   const root = global.process.env.APP_PATH_ROOT ?? import.meta.env.VITE_APP_PATH_ROOT;
 
@@ -63,11 +84,23 @@ const keys: Parameters<typeof app.getPath>[number][] = ['home', 'appData', 'user
 keys.forEach((key) => console.log(`${key}:`, app.getPath(key)));
 console.log('start whenReady');
 
+/**
+ * ElectronアプリケーションのViteサーバー関連の型定義
+ */
 declare global {
   // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
   var __electron__: typeof electron;
 }
 
+/**
+ * アプリケーションの初期化とメインプロセスの設定を行う
+ * - アプリケーションの準備完了を待機
+ * - クッキーの初期化
+ * - サーバービルドのロード
+ * - プロトコルハンドラーの設定
+ * - レンダラーURLの設定
+ * - メインウィンドウの作成
+ */
 (async () => {
   await app.whenReady();
   console.log('App is ready');
@@ -77,6 +110,11 @@ declare global {
 
   const serverBuild = await loadServerBuild();
 
+  /**
+   * プロトコルリクエストを処理するハンドラー
+   * @param req プロトコルリクエスト
+   * @returns レスポンス
+   */
   protocol.handle('http', async (req) => {
     console.log('Handling request for:', req.url);
 
@@ -151,21 +189,25 @@ declare global {
     }
   });
 
-  const rendererURL = await (isDev
-    ? (async () => {
-        await initViteServer();
+  /**
+   * 開発モードでのViteサーバー初期化とURLの設定
+   * @returns レンダラーURL
+   */
+  const getDevRendererURL = async () => {
+    await initViteServer();
 
-        if (!viteServer) {
-          throw new Error('Vite server is not initialized');
-        }
+    if (!viteServer) {
+      throw new Error('Vite server is not initialized');
+    }
 
-        const listen = await viteServer.listen();
-        global.__electron__ = electron;
-        viteServer.printUrls();
+    const listen = await viteServer.listen();
+    global.__electron__ = electron;
+    viteServer.printUrls();
 
-        return `http://localhost:${listen.config.server.port}`;
-      })()
-    : `http://localhost:${DEFAULT_PORT}`);
+    return `http://localhost:${listen.config.server.port}`;
+  };
+
+  const rendererURL = await (isDev ? getDevRendererURL() : `http://localhost:${DEFAULT_PORT}`);
 
   console.log('Using renderer URL:', rendererURL);
 
@@ -182,7 +224,11 @@ declare global {
   return win;
 })()
   .then((win) => {
-    // IPC samples : send and recieve.
+    /**
+     * IPCサンプル通信の設定
+     * - メインプロセスからレンダラーへの定期的なメッセージ送信
+     * - レンダラーからのメッセージ受信ハンドラー
+     */
     let count = 0;
     setInterval(() => win.webContents.send('ping', `hello from main! ${count++}`), 60 * 1000);
     ipcMain.handle('ipcTest', (event, ...args) => console.log('ipc: renderer -> main', { event, ...args }));
@@ -191,11 +237,16 @@ declare global {
   })
   .then((win) => setupMenu(win));
 
+/**
+ * すべてのウィンドウが閉じられた時の処理
+ * - macOS以外の場合はアプリケーションを終了
+ */
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
+// アプリケーション開始時の初期化処理
 reloadOnChange();
 setupAutoUpdater();
