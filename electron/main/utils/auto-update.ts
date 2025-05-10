@@ -1,63 +1,44 @@
-/**
- * Electronアプリケーションの自動更新機能を管理するモジュール
- * - アップデートの確認と通知
- * - ダウンロードの制御
- * - インストールの管理
- */
-
 import logger from 'electron-log';
 import type { MessageBoxOptions } from 'electron';
 import { app, dialog } from 'electron';
-import type { AppUpdater, UpdateDownloadedEvent } from 'electron-updater';
+import type { AppUpdater, UpdateDownloadedEvent, UpdateInfo } from 'electron-updater';
 import path from 'node:path';
+
+// NOTE: workaround to use electron-updater.
 import * as electronUpdater from 'electron-updater';
 import { isDev } from './constants';
 
-// electron-updaterのAutoUpdaterインスタンスを取得
 const autoUpdater: AppUpdater = (electronUpdater as any).default.autoUpdater;
 
-/**
- * アプリケーションの自動更新機能をセットアップする
- * - ロガーの設定
- * - アップデート設定ファイルの読み込み
- * - アップデートイベントのハンドラー設定
- */
 export async function setupAutoUpdater() {
-  // ロガーの設定
+  // Configure logger
   logger.transports.file.level = 'debug';
   autoUpdater.logger = logger;
 
-  // アップデート設定ファイルのパス設定
+  // Configure custom update config file
   const resourcePath = isDev
     ? path.join(process.cwd(), 'electron-update.yml')
     : path.join(app.getAppPath(), 'electron-update.yml');
   logger.info('Update config path:', resourcePath);
   autoUpdater.updateConfigPath = resourcePath;
 
-  // 自動ダウンロードを無効化（ユーザーの確認を得てからダウンロード）
+  // Disable auto download - we want to ask user first
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
 
-  /**
-   * アップデートチェック開始時のハンドラー
-   */
   autoUpdater.on('checking-for-update', () => {
-    logger.info('アップデートの確認を開始...');
+    logger.info('checking-for-update...');
   });
 
-  /**
-   * アップデート可能バージョン発見時のハンドラー
-   * - ユーザーにダウンロードの確認を求める
-   */
-  autoUpdater.on('update-available', async (info) => {
-    logger.info('新しいバージョンが利用可能です:', info);
+  autoUpdater.on('update-available', async (info: UpdateInfo) => {
+    logger.info('Update available.', info);
 
     const dialogOpts: MessageBoxOptions = {
-      type: 'info',
-      buttons: ['アップデート', '後で'],
-      title: 'アプリケーションアップデート',
-      message: `バージョン ${info.version} が利用可能です`,
-      detail: '新しいバージョンが利用可能です。今すぐアップデートしますか？',
+      type: 'info' as const,
+      buttons: ['Update', 'Later'],
+      title: 'Application Update',
+      message: `Version ${info.version} is available.`,
+      detail: 'A new version is available. Would you like to update now?',
     };
 
     const response = await dialog.showMessageBox(dialogOpts);
@@ -67,72 +48,59 @@ export async function setupAutoUpdater() {
     }
   });
 
-  /**
-   * アップデートが不要な場合のハンドラー
-   */
   autoUpdater.on('update-not-available', () => {
-    logger.info('利用可能なアップデートはありません');
+    logger.info('Update not available.');
   });
 
-  /**
-   * アップデートのエラー発生時のハンドラー
+  /*
+   * Uncomment this before we have any published updates on github releases.
+   * autoUpdater.on('error', (err) => {
+   *   logger.error('Error in auto-updater:', err);
+   *   dialog.showErrorBox('Error: ', err.message);
+   * });
    */
-  autoUpdater.on('error', (error) => {
-    logger.error('自動更新でエラーが発生しました:', error);
-  });
 
-  /**
-   * アップデートのダウンロード進捗ハンドラー
-   */
   autoUpdater.on('download-progress', (progressObj) => {
-    logger.info('ダウンロード進捗:', progressObj);
+    logger.info('Download progress:', progressObj);
   });
 
-  /**
-   * アップデートのダウンロード完了ハンドラー
-   * - ユーザーに再起動の確認を求める
-   */
   autoUpdater.on('update-downloaded', async (event: UpdateDownloadedEvent) => {
-    logger.info('アップデートのダウンロードが完了しました:', formatUpdateDownloadedEvent(event));
+    logger.info('Update downloaded:', formatUpdateDownloadedEvent(event));
 
     const dialogOpts: MessageBoxOptions = {
-      type: 'info',
-      buttons: ['再起動', '後で'],
-      title: 'アプリケーションアップデート',
-      message: 'アップデートのダウンロードが完了しました',
-      detail: 'アプリケーションを再起動して、アップデートを適用します。',
+      type: 'info' as const,
+      buttons: ['Restart', 'Later'],
+      title: 'Application Update',
+      message: 'Update Downloaded',
+      detail: 'A new version has been downloaded. Restart the application to apply the updates.',
     };
 
-    const { response } = await dialog.showMessageBox(dialogOpts);
-    if (response === 0) {
-      autoUpdater.quitAndInstall();
+    const response = await dialog.showMessageBox(dialogOpts);
+
+    if (response.response === 0) {
+      autoUpdater.quitAndInstall(false);
     }
   });
 
-  // 初回のアップデートチェックを実行
+  // Check for updates
   try {
-    logger.info('アップデートの確認を開始。現在のバージョン:', app.getVersion());
+    logger.info('Checking for updates. Current version:', app.getVersion());
     await autoUpdater.checkForUpdates();
   } catch (err) {
-    logger.error('アップデートの確認に失敗しました:', err);
+    logger.error('Failed to check for updates:', err);
   }
 
-  // 定期的なアップデートチェックを設定（4時間ごと）
+  // Set up periodic update checks (every 4 hours)
   setInterval(
     () => {
       autoUpdater.checkForUpdates().catch((err) => {
-        logger.error('定期的なアップデートチェックに失敗しました:', err);
+        logger.error('Periodic update check failed:', err);
       });
     },
     4 * 60 * 60 * 1000,
   );
 }
 
-/**
- * アップデートイベントの情報をJSON形式に変換する
- * @param event アップデートのダウンロード完了イベント
- * @returns JSON形式のアップデート情報
- */
 function formatUpdateDownloadedEvent(event: UpdateDownloadedEvent): string {
   return JSON.stringify({
     version: event.version,

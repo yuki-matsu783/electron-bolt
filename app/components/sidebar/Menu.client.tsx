@@ -287,6 +287,9 @@ export const Menu = () => {
         return;
       }
 
+      if (event.pageX < enterThreshold) {
+        setOpen(true);
+      }
 
       if (menuRef.current && event.clientX > menuRef.current.getBoundingClientRect().right + exitThreshold) {
         setOpen(false);
@@ -321,10 +324,6 @@ export const Menu = () => {
 
   return (
     <>
-    <div
-  className="fixed top-0 left-0 h-20 w-20 z-50 cursor-pointer"
-  onClick={() => setOpen(true)}
-></div>
       <motion.div
         ref={menuRef}
         initial="closed"
@@ -335,11 +334,29 @@ export const Menu = () => {
           'flex selection-accent flex-col side-menu fixed top-0 h-full',
           'bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800/50',
           'shadow-sm text-sm',
-          isSettingsOpen ? 'z-100' : 'z-sidebar',
+          isSettingsOpen ? 'z-40' : 'z-sidebar',
         )}
       >
         <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50">
-          <div className="text-gray-900 dark:text-white font-medium">メニュー</div>
+          <div className="text-gray-900 dark:text-white font-medium"></div>
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
+              {profile?.username || 'Guest User'}
+            </span>
+            <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 rounded-full shrink-0">
+              {profile?.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile?.username || 'User'}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="sync"
+                />
+              ) : (
+                <div className="i-ph:user-fill text-lg" />
+              )}
+            </div>
+          </div>
         </div>
         <CurrentDateTime />
         <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
@@ -509,6 +526,7 @@ export const Menu = () => {
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-3">
             <SettingsButton onClick={handleSettingsClick} />
+            <ThemeSwitch />
           </div>
         </div>
       </motion.div>

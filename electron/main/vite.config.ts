@@ -40,12 +40,5 @@ export default defineConfig({
     },
     minify: false,
     emptyOutDir: false,
-    // 開発モード向け: ソースマップを有効化
-    sourcemap: true,
   },
-  // 開発モードの場合の設定
-  watch: process.env.NODE_ENV === 'development' ? {
-    include: ['electron/main/**'],
-    exclude: ['node_modules/**', 'dist/**', 'build/client/**'],
-  } : null,
 });

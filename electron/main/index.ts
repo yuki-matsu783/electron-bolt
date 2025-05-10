@@ -189,25 +189,21 @@ declare global {
     }
   });
 
-  /**
-   * 開発モードでのViteサーバー初期化とURLの設定
-   * @returns レンダラーURL
-   */
-  const getDevRendererURL = async () => {
-    await initViteServer();
+  const rendererURL = await (isDev
+    ? (async () => {
+        await initViteServer();
 
-    if (!viteServer) {
-      throw new Error('Vite server is not initialized');
-    }
+        if (!viteServer) {
+          throw new Error('Vite server is not initialized');
+        }
 
-    const listen = await viteServer.listen();
-    global.__electron__ = electron;
-    viteServer.printUrls();
+        const listen = await viteServer.listen();
+        global.__electron__ = electron;
+        viteServer.printUrls();
 
-    return `http://localhost:${listen.config.server.port}`;
-  };
-
-  const rendererURL = await (isDev ? getDevRendererURL() : `http://localhost:${DEFAULT_PORT}`);
+        return `http://localhost:${listen.config.server.port}`;
+      })()
+    : `http://localhost:${DEFAULT_PORT}`);
 
   console.log('Using renderer URL:', rendererURL);
 

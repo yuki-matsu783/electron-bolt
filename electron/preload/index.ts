@@ -1,37 +1,22 @@
-/**
- * Electronプリロードスクリプト
- * メインプロセスとレンダラープロセス間の安全な通信を提供
- */
+import { ipcRenderer, contextBridge, type IpcRendererEvent } from 'electron';
 
-import { contextBridge, ipcRenderer } from 'electron';
+console.debug('start preload.', ipcRenderer);
 
-/**
- * レンダラープロセスで利用可能なAPIをexpose
- * - メインプロセスとの通信用IPC
- * - システム情報の取得
- * - バージョン情報
- */
-contextBridge.exposeInMainWorld('electron', {
-  /**
-   * IPCテスト用の関数
-   * @param message 送信するメッセージ
-   * @returns Promise<void>
-   */
-  ipcTest: async (message: string) => {
-    return await ipcRenderer.invoke('ipcTest', message);
+const ipc = {
+  invoke(...args: any[]) {
+    return ipcRenderer.invoke('ipcTest', ...args);
   },
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  on(channel: string, func: Function) {
+    const f = (event: IpcRendererEvent, ...args: any[]) => func(...[event, ...args]);
+    console.debug('register listener', channel, f);
+    ipcRenderer.on(channel, f);
 
-  /**
-   * メインプロセスからのメッセージを受信するイベントリスナー
-   * @param callback メッセージを受け取るコールバック関数
-   */
-  onPing: (callback: (message: string) => void) => {
-    ipcRenderer.on('ping', (_event, message) => callback(message));
+    return () => {
+      console.debug('remove listener', channel, f);
+      ipcRenderer.removeListener(channel, f);
+    };
   },
+};
 
-  /**
-   * プラットフォーム情報を取得
-   * @returns プラットフォーム名（win32, darwin, linux等）
-   */
-  getPlatform: () => process.platform,
-});
+contextBridge.exposeInMainWorld('ipc', ipc);

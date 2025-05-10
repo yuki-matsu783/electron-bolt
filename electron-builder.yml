@@ -1,5 +1,5 @@
 appId: com.stackblitz.bolt.diy
-productName: Generative UI
+productName: Bolt Local
 directories:
   buildResources: build
   output: dist

@@ -1,30 +1,14 @@
-/**
- * メインウィンドウを作成・管理するモジュール
- */
-
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import { isDev } from '../utils/constants';
 import { store } from '../utils/store';
 
-/**
- * メインウィンドウを作成する
- * @param rendererURL レンダラープロセスのURL
- * @returns 作成されたBrowserWindowインスタンス
- */
-export async function createWindow(rendererURL: string): Promise<BrowserWindow> {
+export function createWindow(rendererURL: string) {
   console.log('Creating window with URL:', rendererURL);
 
-  // 以前保存されたウィンドウの位置とサイズを復元
   const bounds = store.get('bounds');
   console.log('restored bounds:', bounds);
 
-  /**
-   * ウィンドウの基本設定を定義
-   * - ウィンドウサイズと位置
-   * - 視覚効果
-   * - プリロードスクリプト
-   */
   const win = new BrowserWindow({
     ...{
       width: 1200,
@@ -38,22 +22,30 @@ export async function createWindow(rendererURL: string): Promise<BrowserWindow> 
     },
   });
 
-  /**
-   * ウィンドウの位置とサイズの変更を監視し保存
-   */
-  win.on('moved', () => {
-    store.set('bounds', win.getBounds());
+  console.log('Window created, loading URL...');
+  win.loadURL(rendererURL).catch((err) => {
+    console.log('Failed to load URL:', err);
   });
 
-  win.on('resized', () => {
-    store.set('bounds', win.getBounds());
+  win.webContents.on('did-fail-load', (_, errorCode, errorDescription) => {
+    console.log('Failed to load:', errorCode, errorDescription);
   });
 
-  // 開発モードの場合はDevToolsを開く
+  win.webContents.on('did-finish-load', () => {
+    console.log('Window finished loading');
+  });
+
+  // Open devtools in development
   if (isDev) {
     win.webContents.openDevTools();
   }
 
-  await win.loadURL(rendererURL);
+  const boundsListener = () => {
+    const bounds = win.getBounds();
+    store.set('bounds', bounds);
+  };
+  win.on('moved', boundsListener);
+  win.on('resized', boundsListener);
+
   return win;
 }

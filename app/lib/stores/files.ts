@@ -27,12 +27,6 @@ type Dirent = File | Folder;
 
 export type FileMap = Record<string, Dirent | undefined>;
 
-/**
- * ファイルシステムの操作を管理するストアクラス
- * - WebContainerとの連携
- * - ファイル変更の監視と同期
- * - バイナリファイルの処理
- */
 export class FilesStore {
   #webcontainer: Promise<WebContainer>;
 
@@ -54,27 +48,18 @@ export class FilesStore {
   #deletedPaths: Set<string> = import.meta.hot?.data.deletedPaths ?? new Set();
 
   /**
-   * ファイルマップを管理するストア
-   * キー: ファイルパス
-   * 値: ファイル情報（タイプ、内容、バイナリフラグ）
+   * Map of files that matches the state of WebContainer.
    */
   files: MapStore<FileMap> = import.meta.hot?.data.files ?? map({});
 
-  /**
-   * 利用可能なファイルの総数を取得
-   */
   get filesCount() {
     return this.#size;
   }
 
-  /**
-   * ファイルストアの初期化
-   * @param webcontainerPromise WebContainerインスタンスのPromise
-   */
   constructor(webcontainerPromise: Promise<WebContainer>) {
     this.#webcontainer = webcontainerPromise;
 
-    // ローカルストレージから削除済みファイルの情報を復元
+    // Load deleted paths from localStorage if available
     try {
       if (typeof localStorage !== 'undefined') {
         const deletedPathsJson = localStorage.getItem('bolt-deleted-paths');
@@ -91,8 +76,8 @@ export class FilesStore {
       logger.error('Failed to load deleted paths from localStorage', error);
     }
 
-    // 開発時のホットリロード対応
     if (import.meta.hot) {
+      // Persist our state across hot reloads
       import.meta.hot.data.files = this.files;
       import.meta.hot.data.modifiedFiles = this.#modifiedFiles;
       import.meta.hot.data.deletedPaths = this.#deletedPaths;
@@ -101,11 +86,6 @@ export class FilesStore {
     this.#init();
   }
 
-  /**
-   * 指定されたパスのファイル情報を取得
-   * @param filePath ファイルパス
-   * @returns ファイル情報（存在しない場合はundefined）
-   */
   getFile(filePath: string) {
     const dirent = this.files.get()[filePath];
 
@@ -119,7 +99,6 @@ export class FilesStore {
   getFileModifications() {
     return computeFileModifications(this.files.get(), this.#modifiedFiles);
   }
-
   getModifiedFiles() {
     let modifiedFiles: { [path: string]: File } | undefined = undefined;
 
@@ -148,11 +127,6 @@ export class FilesStore {
     this.#modifiedFiles.clear();
   }
 
-  /**
-   * 変更されたファイルの内容を保存
-   * @param filePath ファイルパス
-   * @param content ファイルの新しい内容
-   */
   async saveFile(filePath: string, content: string) {
     const webcontainer = await this.#webcontainer;
 
@@ -175,7 +149,7 @@ export class FilesStore {
         this.#modifiedFiles.set(filePath, oldContent);
       }
 
-      // 変更イベントを待たずに即座にファイル内容を更新
+      // we immediately update the file and don't rely on the `change` event coming from the watcher
       this.files.setKey(filePath, { type: 'file', content, isBinary: false });
 
       logger.info('File updated');
@@ -321,11 +295,6 @@ export class FilesStore {
     }
   }
 
-  /**
-   * ファイル内容をUTF-8でデコード
-   * @param buffer ファイルのバイナリデータ
-   * @returns デコードされたテキスト内容
-   */
   #decodeFileContent(buffer?: Uint8Array) {
     if (!buffer || buffer.byteLength === 0) {
       return '';
@@ -382,10 +351,6 @@ export class FilesStore {
     }
   }
 
-  /**
-   * 新規フォルダを作成
-   * @param folderPath フォルダパス
-   */
   async createFolder(folderPath: string) {
     const webcontainer = await this.#webcontainer;
 
@@ -409,10 +374,6 @@ export class FilesStore {
     }
   }
 
-  /**
-   * ファイルまたはフォルダを削除
-   * @param filePath 削除対象のパス
-   */
   async deleteFile(filePath: string) {
     const webcontainer = await this.#webcontainer;
 
@@ -490,9 +451,7 @@ export class FilesStore {
     }
   }
 
-  /**
-   * 削除されたファイルパスをローカルストレージに永続化
-   */
+  // method to persist deleted paths to localStorage
   #persistDeletedPaths() {
     try {
       if (typeof localStorage !== 'undefined') {

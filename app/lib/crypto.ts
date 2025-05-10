@@ -34,6 +34,7 @@ export async function encrypt(key: string, data: string) {
 
   // 暗号文とIVを結合
   const bundle = new Uint8Array(IV_LENGTH + ciphertext.byteLength);
+
   bundle.set(new Uint8Array(ciphertext));
   bundle.set(iv, ciphertext.byteLength);
 
@@ -86,6 +87,7 @@ async function getKey(key: string) {
  */
 function decodeBase64(encoded: Uint8Array) {
   const byteChars = Array.from(encoded, (byte) => String.fromCodePoint(byte));
+
   return btoa(byteChars.join(''));
 }
 
