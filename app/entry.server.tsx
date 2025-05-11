@@ -70,7 +70,11 @@ export default async function handleRequest(
 
   responseHeaders.set('Content-Type', 'text/html');
 
-  responseHeaders.set('Cross-Origin-Embedder-Policy', 'same-site');
+  // localhst:5174をiframe内に表示するにはこちらを有効化
+  // responseHeaders.set('Cross-Origin-Embedder-Policy', 'same-site');
+  
+  // bolt shellを表示するにはこちらを有効化
+  responseHeaders.set('Cross-Origin-Embedder-Policy', 'require-corp');
   responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
 
   return new Response(body, {
