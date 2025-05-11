@@ -156,6 +156,18 @@ app/lib/filesystem/
    }
    ```
 
+### 2025/05/10 更新内容
+#### WebContainerからOPFSへの移行実装
+- OPFSServiceの実装とFileSystemServiceインターフェース準拠
+- FilesStoreの改修によるWebContainer依存の削除
+- WorkbenchStoreの初期化処理修正
+- SSR環境対応のためのクライアントサイドチェック追加
+- ファイル操作機能の完全な移行:
+  - ファイル/ディレクトリの作成・削除
+  - ファイルの読み書き
+  - バイナリファイルサポート
+  - 変更監視機能
+
 ### 今後の課題
 
 1. パフォーマンス最適化
