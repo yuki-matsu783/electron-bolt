@@ -73,6 +73,25 @@ flowchart TB
     api --> system
 ```
 
+## 5. データフロー
+
+```mermaid
+sequenceDiagram
+    participant U as ユーザー
+    participant C as チャット
+    participant L as LLMプロバイダー
+    participant W as WebContainer
+    participant F as ファイルシステム
+    
+    U->>C: プロンプト入力
+    C->>L: APIリクエスト
+    L-->>C: レスポンス(ストリーミング)
+    C->>W: コード実行
+    W->>F: ファイル操作
+    W-->>C: 実行結果
+    C-->>U: UI更新
+```
+
 ## 4. 主要ユースケース
 
 ### 4.1 AIアシスタントとの対話
@@ -571,25 +590,6 @@ async pushToGitHub(repoName: string, commitMessage?: string, isPrivate: boolean 
    - Netlify/Vercel設定の管理
    - 環境変数の設定
    - ビルド設定のカスタマイズ
-
-## 5. データフロー
-
-```mermaid
-sequenceDiagram
-    participant U as ユーザー
-    participant C as チャット
-    participant L as LLMプロバイダー
-    participant W as WebContainer
-    participant F as ファイルシステム
-    
-    U->>C: プロンプト入力
-    C->>L: APIリクエスト
-    L-->>C: レスポンス(ストリーミング)
-    C->>W: コード実行
-    W->>F: ファイル操作
-    W-->>C: 実行結果
-    C-->>U: UI更新
-```
 
 ## 6. 技術スタック
 
