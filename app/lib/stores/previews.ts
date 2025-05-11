@@ -1,5 +1,7 @@
 import type { WebContainer } from '@webcontainer/api';
 import { atom } from 'nanostores';
+import { fileSystem } from '~/lib/webcontainer';
+import type { FileSystemChangeEvent } from '~/lib/filesystem/interfaces/types';
 
 // Extend Window interface to include our custom property
 declare global {
@@ -152,24 +154,28 @@ export class PreviewsStore {
     });
 
     try {
-      // Watch for file changes
-      webcontainer.internal.watchPaths(
-        {
+      // Watch for file changes using OPFS
+      fileSystem.watch(
+        '/',
+        (event: FileSystemChangeEvent) => {
           // Only watch specific file types that affect the preview
-          include: ['**/*.html', '**/*.css', '**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/*.json'],
-          exclude: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/coverage/**'],
-        },
-        async (_events) => {
-          const previews = this.previews.get();
-
-          for (const preview of previews) {
-            const previewId = this.getPreviewId(preview.baseUrl);
-
-            if (previewId) {
-              this.broadcastFileChange(previewId);
+          const fileExtensions = ['html', 'css', 'js', 'jsx', 'ts', 'tsx', 'json'];
+          const excludeDirs = ['node_modules', '.git', 'dist', 'build', 'coverage'];
+          
+          // Filter events based on file extensions and excluded directories
+          if (event.path && 
+              fileExtensions.some(ext => event.path.endsWith(`.${ext}`)) &&
+              !excludeDirs.some(dir => event.path.includes(`/${dir}/`))) {
+            const previews = this.previews.get();
+            for (const preview of previews) {
+              const previewId = this.getPreviewId(preview.baseUrl);
+              if (previewId) {
+                this.broadcastFileChange(previewId);
+              }
             }
           }
         },
+        { recursive: true }
       );
 
       // Watch for DOM changes that might affect storage

@@ -2,7 +2,10 @@ import { atom, map, type MapStore, type ReadableAtom, type WritableAtom } from '
 import type { EditorDocument, ScrollPosition } from '~/components/editor/codemirror/CodeMirrorEditor';
 import { ActionRunner } from '~/lib/runtime/action-runner';
 import type { ActionCallbackData, ArtifactCallbackData } from '~/lib/runtime/message-parser';
+import { OPFSService } from '~/lib/filesystem/opfs/OPFSService';
 import { webcontainer } from '~/lib/webcontainer';
+
+const fileSystem = new OPFSService();
 import type { ITerminal } from '~/types/terminal';
 import { unreachable } from '~/utils/unreachable';
 import { EditorStore } from './editor';
@@ -37,7 +40,7 @@ export type WorkbenchViewType = 'code' | 'diff' | 'preview';
 
 export class WorkbenchStore {
   #previewsStore = new PreviewsStore(webcontainer);
-  #filesStore = new FilesStore(webcontainer);
+  #filesStore = new FilesStore(fileSystem);
   #editorStore = new EditorStore(this.#filesStore);
   #terminalStore = new TerminalStore(webcontainer);
 
@@ -494,27 +497,28 @@ export class WorkbenchStore {
     }
 
     if (data.action.type === 'file') {
-      const wc = await webcontainer;
-      const fullPath = path.join(wc.workdir, data.action.filePath);
-
-      if (this.selectedFile.value !== fullPath) {
-        this.setSelectedFile(fullPath);
+      // Handle file operations using OPFS
+      const filePath = data.action.filePath;
+      if (this.selectedFile.value !== filePath) {
+        this.setSelectedFile(filePath);
       }
 
       if (this.currentView.value !== 'code') {
         this.currentView.set('code');
       }
 
-      const doc = this.#editorStore.documents.get()[fullPath];
-
+      const doc = this.#editorStore.documents.get()[filePath];
       if (!doc) {
-        await artifact.runner.runAction(data, isStreaming);
+        // Create new file if it doesn't exist
+        await this.#filesStore.createFile(filePath, data.action.content);
+      } else {
+        // Update existing file
+        await this.#filesStore.saveFile(filePath, data.action.content);
       }
-
-      this.#editorStore.updateFile(fullPath, data.action.content);
+      
+      this.#editorStore.updateFile(filePath, data.action.content);
 
       if (!isStreaming) {
-        await artifact.runner.runAction(data);
         this.resetAllFileModifications();
       }
     } else {
