@@ -129,7 +129,7 @@ declare global {
       const url = new URL(req.url);
 
       // Forward requests to specific local server ports
-      if (url.port !== `${DEFAULT_PORT}`) {
+      if (url.port !== `${DEFAULT_PORT}` && url.port !== `${DEFAULT_PORT + 1}`) {
         console.log('Forwarding request to local server:', req.url);
         return await fetch(req);
       }

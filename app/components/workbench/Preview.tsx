@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '@nanostores/react';
+import { usePortManager } from '~/lib/runtime/port-manager';
 import { IconButton } from '~/components/ui/IconButton';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { PortDropdown } from './PortDropdown';
@@ -46,6 +47,7 @@ const WINDOW_SIZES: WindowSize[] = [
 ];
 
 export const Preview = memo(() => {
+  const { previewPort } = usePortManager();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -868,7 +870,7 @@ export const Preview = memo(() => {
             alignItems: 'center',
           }}
         >
-          {activePreview ? (
+          {true ? (
             <>
               {isDeviceModeOn && showDeviceFrameInPreview ? (
                 <div
@@ -957,9 +959,7 @@ export const Preview = memo(() => {
                   ref={iframeRef}
                   title="preview"
                   className="border-none w-full h-full bg-bolt-elements-background-depth-1"
-                  src={iframeUrl}
-                  sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
-                  allow="cross-origin-isolated"
+                  src={previewPort ? `http://localhost:${previewPort}/` : ''}
                 />
               )}
               <ScreenshotSelector

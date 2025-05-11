@@ -1,6 +1,7 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePortManager } from '~/lib/runtime/port-manager';
 
 const PREVIEW_CHANNEL = 'preview-updates';
 
@@ -19,6 +20,7 @@ export default function WebContainerPreview() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const broadcastChannelRef = useRef<BroadcastChannel>();
   const [previewUrl, setPreviewUrl] = useState('');
+  const { previewPort } = usePortManager();
 
   // Handle preview refresh
   const handleRefresh = useCallback(() => {
@@ -58,8 +60,8 @@ export default function WebContainerPreview() {
       }
     };
 
-    // Construct the WebContainer preview URL
-    const url = `https://${previewId}.local-credentialless.webcontainer-api.io`;
+    // Construct the local preview URL
+    const url = previewPort ? `http://localhost:${previewPort}` : '';
     setPreviewUrl(url);
 
     // Set the iframe src
