@@ -868,7 +868,7 @@ export const Preview = memo(() => {
             alignItems: 'center',
           }}
         >
-          {activePreview ? (
+          {true ? (
             <>
               {isDeviceModeOn && showDeviceFrameInPreview ? (
                 <div
@@ -957,8 +957,7 @@ export const Preview = memo(() => {
                   ref={iframeRef}
                   title="preview"
                   className="border-none w-full h-full bg-bolt-elements-background-depth-1"
-                  src={iframeUrl}
-                  sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
+                  src="http://localhost:5174"
                   allow="cross-origin-isolated"
                 />
               )}
