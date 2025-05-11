@@ -94,7 +94,7 @@ const FileModifiedDropdown = memo(
               <Popover.Button className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-bolt-elements-background-depth-2 hover:bg-bolt-elements-background-depth-3 transition-colors text-bolt-elements-textPrimary border border-bolt-elements-borderColor">
                 <span className="font-medium">File Changes</span>
                 {hasChanges && (
-                  <span className="w-5 h-5 rounded-full bg-accent-500/20 text-accent-500 text-xs flex items-center justify-center border border-accent-500/30">
+                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 text-xs flex items-center justify-center border border-blue-500/30">
                     {modifiedFiles.length}
                   </span>
                 )}
@@ -257,7 +257,7 @@ const FileModifiedDropdown = memo(
                         onClick={() => {
                           navigator.clipboard.writeText(filteredFiles.map(([filePath]) => filePath).join('\n'));
                           toast('File list copied to clipboard', {
-                            icon: <div className="i-ph:check-circle text-accent-500" />,
+                            icon: <div className="i-ph:check-circle text-blue-500" />,
                           });
                         }}
                         className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-bolt-elements-background-depth-1 hover:bg-bolt-elements-background-depth-3 transition-colors text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary"

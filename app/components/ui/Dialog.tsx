@@ -24,7 +24,7 @@ export const DialogButton = memo(({ type, children, onClick, disabled }: DialogB
       className={classNames(
         'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors',
         type === 'primary'
-          ? 'bg-accent-500 text-white hover:bg-accent-600 dark:bg-accent-500 dark:hover:bg-accent-600'
+          ? 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600'
           : type === 'secondary'
             ? 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
             : 'bg-transparent text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10',
@@ -437,7 +437,7 @@ export function SelectionDialog({
             <Button
               onClick={handleConfirm}
               disabled={selectedItems.length === 0}
-              className="bg-accent-500 text-white hover:bg-accent-600 disabled:opacity-50 disabled:pointer-events-none"
+              className="bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none"
             >
               {confirmLabel}
             </Button>
