@@ -173,10 +173,10 @@ declare global {
         error:
           err instanceof Error
             ? {
-                message: err.message,
-                stack: err.stack,
-                cause: err.cause,
-              }
+              message: err.message,
+              stack: err.stack,
+              cause: err.cause,
+            }
             : err,
       });
 
@@ -191,18 +191,18 @@ declare global {
 
   const rendererURL = await (isDev
     ? (async () => {
-        await initViteServer();
+      await initViteServer();
 
-        if (!viteServer) {
-          throw new Error('Vite server is not initialized');
-        }
+      if (!viteServer) {
+        throw new Error('Vite server is not initialized');
+      }
 
-        const listen = await viteServer.listen();
-        global.__electron__ = electron;
-        viteServer.printUrls();
+      const listen = await viteServer.listen();
+      global.__electron__ = electron;
+      viteServer.printUrls();
 
-        return `http://localhost:${listen.config.server.port}`;
-      })()
+      return `http://localhost:${listen.config.server.port}`;
+    })()
     : `http://localhost:${DEFAULT_PORT}`);
 
   console.log('Using renderer URL:', rendererURL);

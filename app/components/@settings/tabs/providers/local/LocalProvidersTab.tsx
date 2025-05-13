@@ -209,14 +209,14 @@ export default function LocalProvidersTab() {
             current.map((m) =>
               m.name === modelName
                 ? {
-                    ...m,
-                    progress: {
-                      current: rawData.completed || 0,
-                      total: rawData.total || 0,
-                      status: rawData.status,
-                    },
-                    newDigest: rawData.digest,
-                  }
+                  ...m,
+                  progress: {
+                    current: rawData.completed || 0,
+                    total: rawData.total || 0,
+                    status: rawData.status,
+                  },
+                  newDigest: rawData.digest,
+                }
                 : m,
             ),
           );

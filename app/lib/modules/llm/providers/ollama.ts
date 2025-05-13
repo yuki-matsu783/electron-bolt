@@ -72,7 +72,7 @@ export default class OllamaProvider extends BaseProvider {
       defaultApiTokenKey: '',
     });
 
-    baseUrl="http://127.0.0.1:11434"
+    baseUrl = "http://127.0.0.1:11434"
 
     if (!baseUrl) {
       throw new Error('No baseUrl found for OLLAMA provider');

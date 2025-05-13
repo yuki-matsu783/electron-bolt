@@ -343,18 +343,6 @@ Remember to always commit your local changes or stash them before pulling update
 - **`pnpm run deploy`**: Deploys the project to Cloudflare Pages.
 - **`pnpm run lint:fix`**: Automatically fixes linting issues.
 
-### Electron Development Scripts
-
-主要なコマンド:
-- **`pnpm electron:dev`**: Electronアプリケーションを開発モードで起動します。これは開発時に最もよく使用するコマンドです。
-
-ビルド用コマンド:
-- **`pnpm electron:build:mac`**: macOS用の配布パッケージを作成します。
-- **`pnpm electron:build:win`**: Windows用の配布パッケージを作成します。
-- **`pnpm electron:build:linux`**: Linux用の配布パッケージを作成します。
-- **`pnpm electron:build:dist`**: 全プラットフォーム（macOS/Windows/Linux）用のパッケージを一括で作成します。
-- **`pnpm electron:build:unpack`**: パッケージ化せずにビルドの確認が必要な場合に使用します（デバッグ目的）。
-
 ---
 
 ## Contributing

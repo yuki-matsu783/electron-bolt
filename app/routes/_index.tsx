@@ -21,13 +21,11 @@ export const loader = () => json({});
  * to keep the UI clean and consistent with the design system.
  */
 export default function Index() {
-  const [activeTab, setActiveTab] = useState('chat');
-
   return (
     <div className="flex flex-col h-full w-full bg-bolt-elements-background-depth-1">
       <BackgroundRays />
       <Header />
-      <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex-1">
+      {/* <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <Tabs.List className="flex border-b border-bolt-elements-border-strong bg-bolt-elements-background-depth-2 px-4">
           <Tabs.Trigger
             value="chat"
@@ -42,13 +40,12 @@ export default function Index() {
             プレビュー
           </Tabs.Trigger>
         </Tabs.List>
-        <Tabs.Content value="chat" className="flex-1">
-          <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
-        </Tabs.Content>
-        <Tabs.Content value="preview" className="flex-1">
-          <PreviewTab />
-        </Tabs.Content>
-      </Tabs.Root>
-    </div>
+        <Tabs.Content value="chat" className="flex-1"></Tabs.Content> */}
+      <ClientOnly fallback={<BaseChat />}>{() => <Chat />}</ClientOnly>
+      {/* <Tabs.Content value="preview" className="flex-1">
+        <PreviewTab />
+      </Tabs.Content>
+    </Tabs.Root> */}
+    </div >
   );
 }

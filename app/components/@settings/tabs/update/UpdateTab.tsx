@@ -127,10 +127,10 @@ const UpdateTab = () => {
     return stored
       ? JSON.parse(stored)
       : {
-          autoUpdate: false,
-          notifyInApp: true,
-          checkInterval: 24,
-        };
+        autoUpdate: false,
+        notifyInApp: true,
+        checkInterval: 24,
+      };
   });
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [updateProgress, setUpdateProgress] = useState<UpdateProgress | null>(null);

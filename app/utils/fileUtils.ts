@@ -108,14 +108,14 @@ export const filesToArtifacts = (files: { [path: string]: { content: string } },
   return `
 <boltArtifact id="${id}" title="User Updated Files">
 ${Object.keys(files)
-  .map(
-    (filePath) => `
+      .map(
+        (filePath) => `
 <boltAction type="file" filePath="${filePath}">
 ${files[filePath].content}
 </boltAction>
 `,
-  )
-  .join('\n')}
+      )
+      .join('\n')}
 </boltArtifact>
   `;
 };

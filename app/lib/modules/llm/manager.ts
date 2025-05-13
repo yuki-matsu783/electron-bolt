@@ -130,19 +130,19 @@ export class LLMManager {
     modelList.sort((a, b) => {
       const aName = a.name.toLowerCase();
       const bName = b.name.toLowerCase();
-      
+
       // DeepSeekとfreeの両方を含むモデルを最優先
       const aHasBoth = aName.includes('deepseek') && aName.includes('free');
       const bHasBoth = bName.includes('deepseek') && bName.includes('free');
       if (aHasBoth && !bHasBoth) return -1;
       if (!aHasBoth && bHasBoth) return 1;
-      
+
       // freeを含むモデルを次に優先
       const aHasFree = aName.includes('free');
       const bHasFree = bName.includes('free');
       if (aHasFree && !bHasFree) return -1;
       if (!aHasFree && bHasFree) return 1;
-      
+
       // その他のモデルはアルファベット順
       return aName.localeCompare(bName);
     });
@@ -209,19 +209,19 @@ export class LLMManager {
     modelList.sort((a, b) => {
       const aName = a.name.toLowerCase();
       const bName = b.name.toLowerCase();
-      
+
       // DeepSeekとfreeの両方を含むモデルを最優先
       const aHasBoth = aName.includes('deepseek') && aName.includes('free');
       const bHasBoth = bName.includes('deepseek') && bName.includes('free');
       if (aHasBoth && !bHasBoth) return -1;
       if (!aHasBoth && bHasBoth) return 1;
-      
+
       // freeを含むモデルを次に優先
       const aHasFree = aName.includes('free');
       const bHasFree = bName.includes('free');
       if (aHasFree && !bHasFree) return -1;
       if (!aHasFree && bHasFree) return 1;
-      
+
       // その他のモデルはアルファベット順
       return aName.localeCompare(bName);
     });
