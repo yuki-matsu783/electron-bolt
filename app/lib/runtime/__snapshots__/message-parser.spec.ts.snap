@@ -3,7 +3,7 @@
 exports[`StreamingMessageParser > valid artifacts with actions > should correctly parse chunks and strip out bolt artifacts (0) > onActionClose 1`] = `
 {
   "action": {
-    "content": "npm install",
+    "content": "pnpm install",
     "type": "shell",
   },
   "actionId": "0",
@@ -45,7 +45,7 @@ exports[`StreamingMessageParser > valid artifacts with actions > should correctl
 exports[`StreamingMessageParser > valid artifacts with actions > should correctly parse chunks and strip out bolt artifacts (1) > onActionClose 1`] = `
 {
   "action": {
-    "content": "npm install",
+    "content": "pnpm install",
     "type": "shell",
   },
   "actionId": "0",

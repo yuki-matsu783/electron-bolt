@@ -315,7 +315,7 @@ Examples:
 }</boltAction>
         <boltAction type="shell">pnpm install --save-dev vite</boltAction>
         <boltAction type="file" filePath="index.html">...</boltAction>
-        <boltAction type="start">pnpm run dev</boltAction>
+        <boltAction type="start">pnpm install && pnpm run dev</boltAction>
       </boltArtifact>
 
       Now you can play the Snake game by opening the provided local server URL in your browser. Use the arrow keys to control the snake. Eat the red food to grow and increase your score. The game ends if you hit the wall or your own tail.
@@ -354,7 +354,7 @@ Examples:
         <boltAction type="file" filePath="src/main.jsx">...</boltAction>
         <boltAction type="file" filePath="src/index.css">...</boltAction>
         <boltAction type="file" filePath="src/App.jsx">...</boltAction>
-        <boltAction type="start">pnpm i && pnpm run dev</boltAction>
+        <boltAction type="start">pnpm install && pnpm run dev</boltAction>
       </boltArtifact>
 
       You can now view the bouncing ball animation in the preview. The ball will start falling from the top of the screen and bounce realistically when it hits the bottom.

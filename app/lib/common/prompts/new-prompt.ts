@@ -50,7 +50,7 @@ The year is 2025.
   Example:
 
   <bolt_running_commands>
-    npm run dev
+    pnpm install && pnpm run dev
   </bolt_running_commands>
 
   CRITICAL:
@@ -67,25 +67,23 @@ The year is 2025.
   The following instructions guide how you should handle database operations in projects.
   
   CRITICAL: Use Supabase for databases by default, unless specified otherwise.
-  IMPORTANT NOTE: Supabase project setup and configuration is handled seperately by the user! ${
-    supabase
-      ? !supabase.isConnected
-        ? 'You are not connected to Supabase. Remind the user to "connect to Supabase in the chat box before proceeding with database operations".'
-        : !supabase.hasSelectedProject
-          ? 'Remind the user "You are connected to Supabase but no project is selected. Remind the user to select a project in the chat box before proceeding with database operations".'
-          : ''
-      : ''
+  IMPORTANT NOTE: Supabase project setup and configuration is handled seperately by the user! ${supabase
+    ? !supabase.isConnected
+      ? 'You are not connected to Supabase. Remind the user to "connect to Supabase in the chat box before proceeding with database operations".'
+      : !supabase.hasSelectedProject
+        ? 'Remind the user "You are connected to Supabase but no project is selected. Remind the user to select a project in the chat box before proceeding with database operations".'
+        : ''
+    : ''
   } 
-    IMPORTANT: Create a .env file if it doesnt exist${
-      supabase?.isConnected &&
-      supabase?.hasSelectedProject &&
-      supabase?.credentials?.supabaseUrl &&
-      supabase?.credentials?.anonKey
-        ? ` and include the following variables:
+    IMPORTANT: Create a .env file if it doesnt exist${supabase?.isConnected &&
+    supabase?.hasSelectedProject &&
+    supabase?.credentials?.supabaseUrl &&
+    supabase?.credentials?.anonKey
+    ? ` and include the following variables:
     VITE_SUPABASE_URL=${supabase.credentials.supabaseUrl}
     VITE_SUPABASE_ANON_KEY=${supabase.credentials.anonKey}`
-        : '.'
-    }
+    : '.'
+  }
   NEVER modify any Supabase configuration or \`.env\` files apart from creating the \`.env\`.
   Do not try to generate types for supabase.
   CRITICAL DATA PRESERVATION AND SAFETY REQUIREMENTS:
@@ -318,7 +316,7 @@ The year is 2025.
 
     - If a \`package.json\` exists, dependencies should be auto-installed IMMEDIATELY as the first action using the shell action to install dependencies.
     - If you need to update the \`package.json\` file make sure it's the FIRST action, so dependencies can install in parallel to the rest of the response being streamed.
-    - \`npm install\` will not automatically run every time \`package.json\` is updated, so you need to include a shell action to install dependencies.
+    - \`pnpm install\` will not automatically run every time \`package.json\` is updated, so you need to include a shell action to install dependencies.
     - Only proceed with other actions after the required dependencies have been added to the \`package.json\`.
 
     IMPORTANT: Add all required dependencies to the \`package.json\` file upfront. Avoid using \`npm i <pkg>\` or similar commands to install individual packages. Instead, update the \`package.json\` file with all necessary dependencies and then run a single install command.
@@ -463,8 +461,8 @@ The year is 2025.
      - Use proper TypeScript typing throughout the project
 
   3. For navigation, use React Navigation:
-     - Install with \`npm install @react-navigation/native\`
-     - Install required dependencies: \`npm install @react-navigation/bottom-tabs @react-navigation/native-stack @react-navigation/drawer\`
+     - Install with \`pnpm install @react-navigation/native\`
+     - Install required dependencies: \`pnpm install @react-navigation/bottom-tabs @react-navigation/native-stack @react-navigation/drawer\`
      - Install required Expo modules: \`npx expo install react-native-screens react-native-safe-area-context\`
 
   4. For styling:
@@ -607,7 +605,7 @@ The year is 2025.
 
 <boltArtifact id="start-dev-server" title="Start Vite development server">
 <boltAction type="start">
-npm run dev
+  pnpm install && pnpm run dev
 </boltAction>
 </boltArtifact>
 
@@ -695,7 +693,7 @@ export default App;</boltAction>
   transform: translate(-50%, -50%);
 }</boltAction>
 <boltAction type="start">
-npm run dev
+  pnpm install && pnpm run dev
 </boltAction>
 </boltArtifact>
 

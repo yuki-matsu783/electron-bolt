@@ -13,16 +13,16 @@ Available templates:
   <tags>basic, script</tags>
 </template>
 ${templates
-  .map(
-    (template) => `
+    .map(
+      (template) => `
 <template>
   <name>${template.name}</name>
   <description>${template.description}</description>
   ${template.tags ? `<tags>${template.tags.join(', ')}</tags>` : ''}
 </template>
 `,
-  )
-  .join('\n')}
+    )
+    .join('\n')}
 
 Response Format:
 <selection>
@@ -185,13 +185,13 @@ export async function getTemplates(templateName: string, title?: string) {
 Bolt is initializing your project with the required files using the ${template.name} template.
 <boltArtifact id="imported-files" title="${title || 'Create initial files'}" type="bundled">
 ${filesToImport.files
-  .map(
-    (file) =>
-      `<boltAction type="file" filePath="${file.path}">
+      .map(
+        (file) =>
+          `<boltAction type="file" filePath="${file.path}">
 ${file.content}
 </boltAction>`,
-  )
-  .join('\n')}
+      )
+      .join('\n')}
 </boltArtifact>
 `;
   let userMessage = ``;
@@ -243,7 +243,7 @@ NO NOT EDIT/WRITE ANY FILES THAT ALREADY EXIST IN THE PROJECT AND DOES NOT NEED 
 ---
 Now that the Template is imported please continue with my original request
 
-IMPORTANT: Dont Forget to install the dependencies before running the app by using \`npm install && npm run dev\`
+IMPORTANT: Dont Forget to install the dependencies before running the app by using \`pnpm install && pnpm run dev\`
 `;
 
   return {

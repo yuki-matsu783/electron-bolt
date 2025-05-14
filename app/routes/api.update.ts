@@ -13,7 +13,7 @@ export const action: ActionFunction = async ({ request }) => {
         '2. Run: git fetch upstream',
         '3. Run: git pull upstream main',
         '4. Run: pnpm install',
-        '5. Run: pnpm run build',
+        '5. Run: pnpm install && pnpm run build',
       ],
     },
     { status: 400 },
